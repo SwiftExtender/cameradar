@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aler9/gortsplib"
+	//"github.com/aler9/gortsplib"
 	"github.com/Ullaakut/disgo"
 
 	"github.com/stretchr/testify/assert"
@@ -27,14 +27,14 @@ func (m *CurlerMock) Perform() error {
 	return args.Error(0)
 }
 
-func (m *CurlerMock) Getinfo(info curl.CurlInfo) (interface{}, error) {
-	args := m.Called(info)
-	return args.Int(0), args.Error(1)
-}
+// func (m *CurlerMock) Getinfo(info curl.CurlInfo) (interface{}, error) {
+// 	args := m.Called(info)
+// 	return args.Int(0), args.Error(1)
+// }
 
-func (m *CurlerMock) Duphandle() Curler {
-	return m
-}
+// func (m *CurlerMock) Duphandle() Curler {
+// 	return m
+// }
 
 func TestAttack(t *testing.T) {
 	var (
@@ -107,8 +107,8 @@ func TestAttack(t *testing.T) {
 			}
 
 			scanner := &Scanner{
-				term:        disgo.NewTerminal(disgo.WithDefaultOutput(ioutil.Discard)),
-				curl:        curlerMock,
+				term: disgo.NewTerminal(disgo.WithDefaultOutput(ioutil.Discard)),
+				//curl:        curlerMock,
 				timeout:     time.Millisecond,
 				verbose:     true,
 				debug:       true,
@@ -249,8 +249,8 @@ func TestAttackCredentials(t *testing.T) {
 			}
 
 			scanner := &Scanner{
-				term:        disgo.NewTerminal(disgo.WithDefaultOutput(ioutil.Discard)),
-				curl:        curlerMock,
+				term: disgo.NewTerminal(disgo.WithDefaultOutput(ioutil.Discard)),
+				//curl:        curlerMock,
 				timeout:     test.timeout,
 				verbose:     test.verbose,
 				debug:       test.verbose,
@@ -393,8 +393,8 @@ func TestAttackRoute(t *testing.T) {
 			}
 
 			scanner := &Scanner{
-				term:    disgo.NewTerminal(disgo.WithDefaultOutput(ioutil.Discard)),
-				curl:    curlerMock,
+				term: disgo.NewTerminal(disgo.WithDefaultOutput(ioutil.Discard)),
+				//curl:    curlerMock,
 				timeout: test.timeout,
 				verbose: test.verbose,
 				debug:   test.verbose,
@@ -489,8 +489,8 @@ func TestAttackRoute_NoDummyRoute(t *testing.T) {
 			curlerMock.On("Getinfo", mock.Anything).Return(test.status, nil)
 
 			scanner := &Scanner{
-				term:    disgo.NewTerminal(disgo.WithDefaultOutput(ioutil.Discard)),
-				curl:    curlerMock,
+				term: disgo.NewTerminal(disgo.WithDefaultOutput(ioutil.Discard)),
+				//curl:    curlerMock,
 				timeout: test.timeout,
 				verbose: test.verbose,
 				routes:  test.routes,
@@ -629,8 +629,8 @@ func TestValidateStreams(t *testing.T) {
 			}
 
 			scanner := &Scanner{
-				term:    disgo.NewTerminal(disgo.WithDefaultOutput(ioutil.Discard)),
-				curl:    curlerMock,
+				term: disgo.NewTerminal(disgo.WithDefaultOutput(ioutil.Discard)),
+				//curl:    curlerMock,
 				timeout: test.timeout,
 				verbose: test.verbose,
 				debug:   test.verbose,
@@ -763,8 +763,8 @@ func TestDetectAuthenticationType(t *testing.T) {
 			}
 
 			scanner := &Scanner{
-				term:    disgo.NewTerminal(disgo.WithDefaultOutput(ioutil.Discard)),
-				curl:    curlerMock,
+				term: disgo.NewTerminal(disgo.WithDefaultOutput(ioutil.Discard)),
+				//curl:    curlerMock,
 				timeout: test.timeout,
 				verbose: test.verbose,
 			}
