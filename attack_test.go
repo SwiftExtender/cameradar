@@ -7,7 +7,9 @@ import (
 	"time"
 
 	"github.com/Ullaakut/disgo"
-	"github.com/Ullaakut/go-curl"
+	"github.com/aler9/gortsplib"
+
+	//"github.com/Ullaakut/go-curl"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )

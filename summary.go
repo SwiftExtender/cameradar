@@ -6,7 +6,8 @@ import (
 	"io"
 
 	"github.com/Ullaakut/disgo/style"
-	curl "github.com/Ullaakut/go-curl"
+	"github.com/aler9/gortsplib"
+	//curl "github.com/Ullaakut/go-curl"
 )
 
 // PrintStreams prints information on each stream.
