@@ -7,8 +7,7 @@ import (
 
 	"github.com/Ullaakut/disgo"
 	"github.com/Ullaakut/disgo/style"
-	"github.com/aler9/gortsplib"
-	//curl "github.com/Ullaakut/go-curl"
+	"github.com/bluenviron/gortsplib"
 )
 
 const (

@@ -4,8 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/aler9/gortsplib"
-	//"github.com/Ullaakut/go-curl"
+	"github.com/bluenviron/gortsplib"
 )
 
 // HTTP responses.
@@ -202,10 +201,10 @@ func (s *Scanner) detectAuthMethod(stream Stream) int {
 	s.setCurlOptions(c)
 
 	// Send a request to the URL of the stream we want to attack.
-	_ = c.Setopt(curl.OPT_URL, attackURL)
+	//_ = c.Setopt(curl.OPT_URL, attackURL)
 	// Set the RTSP STREAM URI as the stream URL.
-	_ = c.Setopt(curl.OPT_RTSP_STREAM_URI, attackURL)
-	_ = c.Setopt(curl.OPT_RTSP_REQUEST, rtspDescribe)
+	//_ = c.Setopt(curl.OPT_RTSP_STREAM_URI, attackURL)
+	//_ = c.Setopt(curl.OPT_RTSP_REQUEST, rtspDescribe)
 
 	// Perform the request.
 	err := c.Perform()
@@ -214,17 +213,18 @@ func (s *Scanner) detectAuthMethod(stream Stream) int {
 		return -1
 	}
 
-	authType, err := c.Getinfo(curl.INFO_HTTPAUTH_AVAIL)
-	if err != nil {
-		s.term.Errorf("Getinfo failed: %v", err)
-		return -1
-	}
+	// authType, err := c.Getinfo(curl.INFO_HTTPAUTH_AVAIL)
+	// if err != nil {
+	// 	s.term.Errorf("Getinfo failed: %v", err)
+	// 	return -1
+	// }
 
-	if s.debug {
-		s.term.Debugln("DESCRIBE", attackURL, "RTSP/1.0 >", authType)
-	}
+	// if s.debug {
+	// 	s.term.Debugln("DESCRIBE", attackURL, "RTSP/1.0 >", authType)
+	// }
 
-	return authType.(int)
+	// return authType.(int)
+	return 0
 }
 
 func (s *Scanner) routeAttack(stream Stream, route string) bool {
@@ -242,14 +242,14 @@ func (s *Scanner) routeAttack(stream Stream, route string) bool {
 	s.setCurlOptions(c)
 
 	// Set proper authentication type.
-	_ = c.Setopt(curl.OPT_HTTPAUTH, stream.AuthenticationType)
-	_ = c.Setopt(curl.OPT_USERPWD, fmt.Sprint(stream.Username, ":", stream.Password))
+	// _ = c.Setopt(curl.OPT_HTTPAUTH, stream.AuthenticationType)
+	// _ = c.Setopt(curl.OPT_USERPWD, fmt.Sprint(stream.Username, ":", stream.Password))
 
 	// Send a request to the URL of the stream we want to attack.
-	_ = c.Setopt(curl.OPT_URL, attackURL)
+	// _ = c.Setopt(curl.OPT_URL, attackURL)
 	// Set the RTSP STREAM URI as the stream URL.
-	_ = c.Setopt(curl.OPT_RTSP_STREAM_URI, attackURL)
-	_ = c.Setopt(curl.OPT_RTSP_REQUEST, rtspDescribe)
+	// _ = c.Setopt(curl.OPT_RTSP_STREAM_URI, attackURL)
+	// _ = c.Setopt(curl.OPT_RTSP_REQUEST, rtspDescribe)
 
 	// Perform the request.
 	err := c.Perform()
@@ -259,15 +259,15 @@ func (s *Scanner) routeAttack(stream Stream, route string) bool {
 	}
 
 	// Get return code for the request.
-	rc, err := c.Getinfo(curl.INFO_RESPONSE_CODE)
-	if err != nil {
-		s.term.Errorf("Getinfo failed: %v", err)
-		return false
-	}
+	// rc, err := c.Getinfo(curl.INFO_RESPONSE_CODE)
+	// if err != nil {
+	// 	s.term.Errorf("Getinfo failed: %v", err)
+	// 	return false
+	// }
 
-	if s.debug {
-		s.term.Debugln("DESCRIBE", attackURL, "RTSP/1.0 >", rc)
-	}
+	// if s.debug {
+	// 	s.term.Debugln("DESCRIBE", attackURL, "RTSP/1.0 >", rc)
+	// }
 	// If it's a 401 or 403, it means that the credentials are wrong but the route might be okay.
 	// If it's a 200, the stream is accessed successfully.
 	if rc == httpOK || rc == httpUnauthorized || rc == httpForbidden {
@@ -377,22 +377,22 @@ func (s *Scanner) validateStream(stream Stream) bool {
 	return false
 }
 
-func (s *Scanner) setCurlOptions(c Curler) {
+func (s *Scanner) setGortsplibOptions(c Curler) {
 	// Do not write sdp in stdout
-	_ = c.Setopt(curl.OPT_WRITEFUNCTION, doNotWrite)
+	//_ = c.Setopt(curl.OPT_WRITEFUNCTION, doNotWrite)
 	// Do not use signals (would break multithreading).
-	_ = c.Setopt(curl.OPT_NOSIGNAL, 1)
+	//_ = c.Setopt(curl.OPT_NOSIGNAL, 1)
 	// Do not send a body in the describe request.
-	_ = c.Setopt(curl.OPT_NOBODY, 1)
+	//_ = c.Setopt(curl.OPT_NOBODY, 1)
 	// Set custom timeout.
-	_ = c.Setopt(curl.OPT_TIMEOUT_MS, int(s.timeout/time.Millisecond))
+	//_ = c.Setopt(curl.OPT_TIMEOUT_MS, int(s.timeout/time.Millisecond))
 
 	// Enable verbose logs if verbose mode is on.
-	if s.verbose {
-		_ = c.Setopt(curl.OPT_VERBOSE, 1)
-	} else {
-		_ = c.Setopt(curl.OPT_VERBOSE, 0)
-	}
+	// if s.verbose {
+	// 	_ = c.Setopt(curl.OPT_VERBOSE, 1)
+	// } else {
+	// 	_ = c.Setopt(curl.OPT_VERBOSE, 0)
+	// }
 }
 
 // HACK: See https://stackoverflow.com/questions/3572397/lib-curl-in-c-disable-printing
