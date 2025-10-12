@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/bluenviron/gortsplib"
+	"github.com/aler9/gortsplib"
 )
 
 // HTTP responses.
