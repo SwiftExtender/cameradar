@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/bluenviron/gortsplib"
+	gortsplib "github.com/aler9/gortsplib"
 
 	//curl "github.com/Ullaakut/go-curl"
 	"github.com/stretchr/testify/assert"

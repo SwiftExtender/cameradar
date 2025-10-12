@@ -198,7 +198,7 @@ func (s *Scanner) detectAuthMethod(stream Stream) int {
 		stream.Route(),
 	)
 
-	s.setCurlOptions(c)
+	// s.setCurlOptions(c)
 
 	// Send a request to the URL of the stream we want to attack.
 	//_ = c.Setopt(curl.OPT_URL, attackURL)
@@ -288,17 +288,17 @@ func (s *Scanner) credAttack(stream Stream, username string, password string) bo
 		stream.Route(),
 	)
 
-	s.setCurlOptions(c)
+	// s.setCurlOptions(c)
 
 	// Set proper authentication type.
-	_ = c.Setopt(curl.OPT_HTTPAUTH, stream.AuthenticationType)
-	_ = c.Setopt(curl.OPT_USERPWD, fmt.Sprint(username, ":", password))
+	// _ = c.Setopt(curl.OPT_HTTPAUTH, stream.AuthenticationType)
+	// _ = c.Setopt(curl.OPT_USERPWD, fmt.Sprint(username, ":", password))
 
 	// Send a request to the URL of the stream we want to attack.
-	_ = c.Setopt(curl.OPT_URL, attackURL)
+	// _ = c.Setopt(curl.OPT_URL, attackURL)
 	// Set the RTSP STREAM URI as the stream URL.
-	_ = c.Setopt(curl.OPT_RTSP_STREAM_URI, attackURL)
-	_ = c.Setopt(curl.OPT_RTSP_REQUEST, rtspDescribe)
+	// _ = c.Setopt(curl.OPT_RTSP_STREAM_URI, attackURL)
+	// _ = c.Setopt(curl.OPT_RTSP_REQUEST, rtspDescribe)
 
 	// Perform the request.
 	err := c.Perform()
@@ -338,19 +338,19 @@ func (s *Scanner) validateStream(stream Stream) bool {
 		stream.Route(),
 	)
 
-	s.setCurlOptions(c)
+	// s.setCurlOptions(c)
 
 	// Set proper authentication type.
-	_ = c.Setopt(curl.OPT_HTTPAUTH, stream.AuthenticationType)
-	_ = c.Setopt(curl.OPT_USERPWD, fmt.Sprint(stream.Username, ":", stream.Password))
+	// _ = c.Setopt(curl.OPT_HTTPAUTH, stream.AuthenticationType)
+	// _ = c.Setopt(curl.OPT_USERPWD, fmt.Sprint(stream.Username, ":", stream.Password))
 
 	// Send a request to the URL of the stream we want to attack.
-	_ = c.Setopt(curl.OPT_URL, attackURL)
+	// _ = c.Setopt(curl.OPT_URL, attackURL)
 	// Set the RTSP STREAM URI as the stream URL.
-	_ = c.Setopt(curl.OPT_RTSP_STREAM_URI, attackURL)
-	_ = c.Setopt(curl.OPT_RTSP_REQUEST, rtspSetup)
+	// _ = c.Setopt(curl.OPT_RTSP_STREAM_URI, attackURL)
+	// _ = c.Setopt(curl.OPT_RTSP_REQUEST, rtspSetup)
 
-	_ = c.Setopt(curl.OPT_RTSP_TRANSPORT, "RTP/AVP;unicast;client_port=33332-33333")
+	// _ = c.Setopt(curl.OPT_RTSP_TRANSPORT, "RTP/AVP;unicast;client_port=33332-33333")
 
 	// Perform the request.
 	err := c.Perform()

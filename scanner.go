@@ -4,10 +4,9 @@ import (
 	"fmt"
 	"os"
 	"time"
-
+	gortspclient "github.com/aler9/gortsplib"
 	"github.com/Ullaakut/disgo"
 	"github.com/Ullaakut/disgo/style"
-	"github.com/bluenviron/gortsplib"
 )
 
 const (
@@ -18,7 +17,7 @@ const (
 // Scanner represents a cameradar scanner. It scans a network and
 // attacks all streams found to get their RTSP credentials.
 type Scanner struct {
-	curl Curler
+	//curl Curler
 	term *disgo.Terminal
 
 	targets                  []string
@@ -37,18 +36,18 @@ type Scanner struct {
 
 // New creates a new Cameradar Scanner and applies the given options.
 func New(options ...func(*Scanner)) (*Scanner, error) {
-	err := curl.GlobalInit(curl.GLOBAL_ALL)
-	if err != nil {
-		return nil, fmt.Errorf("unable to initialize curl library: %v", err)
-	}
+	//err := gortspclient.GlobalInit(curl.GLOBAL_ALL)
+	// if err != nil {
+	// 	return nil, fmt.Errorf("unable to initialize curl library: %v", err)
+	// }
 
-	handle := curl.EasyInit()
+	handle := gortspclient.EasyInit()
 	if handle == nil {
 		return nil, fmt.Errorf("unable to initialize curl handle: %v", err)
 	}
 
 	scanner := &Scanner{
-		curl:                     &Curl{CURL: handle},
+		//curl:                     &gortspclient{CURL: handle},
 		credentialDictionaryPath: defaultCredentialDictionaryPath,
 		routeDictionaryPath:      defaultRouteDictionaryPath,
 	}

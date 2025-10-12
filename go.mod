@@ -7,6 +7,7 @@ require (
 	github.com/Ullaakut/disgo v0.3.1
 	github.com/Ullaakut/nmap v2.0.0+incompatible
 	github.com/VividCortex/ewma v1.1.1 // indirect
+	github.com/aler9/gortsplib v1.0.1 // indirect
 	github.com/fatih/color v1.7.0 // indirect
 	github.com/mattn/go-colorable v0.1.2 // indirect
 	github.com/spf13/pflag v1.0.3
