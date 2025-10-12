@@ -189,7 +189,7 @@ func (s *Scanner) attackCameraRoute(target Stream, resChan chan<- Stream) {
 }
 
 func (s *Scanner) detectAuthMethod(stream Stream) int {
-	c := s.curl.Duphandle()
+	//c := s.curl.Duphandle()
 
 	attackURL := fmt.Sprintf(
 		"rtsp://%s:%d/%s",
@@ -207,7 +207,7 @@ func (s *Scanner) detectAuthMethod(stream Stream) int {
 	//_ = c.Setopt(curl.OPT_RTSP_REQUEST, rtspDescribe)
 
 	// Perform the request.
-	err := c.Perform()
+	//err := c.Perform()
 	if err != nil {
 		s.term.Errorf("Perform failed for %q (auth %d): %v", attackURL, stream.AuthenticationType, err)
 		return -1
@@ -239,7 +239,7 @@ func (s *Scanner) routeAttack(stream Stream, route string) bool {
 		route,
 	)
 
-	s.setCurlOptions(c)
+	//s.setCurlOptions(c)
 
 	// Set proper authentication type.
 	// _ = c.Setopt(curl.OPT_HTTPAUTH, stream.AuthenticationType)
@@ -277,7 +277,7 @@ func (s *Scanner) routeAttack(stream Stream, route string) bool {
 }
 
 func (s *Scanner) credAttack(stream Stream, username string, password string) bool {
-	c := s.curl.Duphandle()
+	//c := s.curl.Duphandle()
 
 	attackURL := fmt.Sprintf(
 		"rtsp://%s:%s@%s:%d/%s",
@@ -301,14 +301,14 @@ func (s *Scanner) credAttack(stream Stream, username string, password string) bo
 	// _ = c.Setopt(curl.OPT_RTSP_REQUEST, rtspDescribe)
 
 	// Perform the request.
-	err := c.Perform()
+	//err := c.Perform()
 	if err != nil {
 		s.term.Errorf("Perform failed for %q (auth %d): %v", attackURL, stream.AuthenticationType, err)
 		return false
 	}
 
 	// Get return code for the request.
-	rc, err := c.Getinfo(curl.INFO_RESPONSE_CODE)
+	//rc, err := c.Getinfo(curl.INFO_RESPONSE_CODE)
 	if err != nil {
 		s.term.Errorf("Getinfo failed: %v", err)
 		return false
@@ -327,7 +327,7 @@ func (s *Scanner) credAttack(stream Stream, username string, password string) bo
 }
 
 func (s *Scanner) validateStream(stream Stream) bool {
-	c := s.curl.Duphandle()
+	//c := s.curl.Duphandle()
 
 	attackURL := fmt.Sprintf(
 		"rtsp://%s:%s@%s:%d/%s",
@@ -353,14 +353,14 @@ func (s *Scanner) validateStream(stream Stream) bool {
 	// _ = c.Setopt(curl.OPT_RTSP_TRANSPORT, "RTP/AVP;unicast;client_port=33332-33333")
 
 	// Perform the request.
-	err := c.Perform()
+	//err := c.Perform()
 	if err != nil {
 		s.term.Errorf("Perform failed for %q (auth %d): %v", attackURL, stream.AuthenticationType, err)
 		return false
 	}
 
 	// Get return code for the request.
-	rc, err := c.Getinfo(curl.INFO_RESPONSE_CODE)
+	//rc, err := c.Getinfo(curl.INFO_RESPONSE_CODE)
 	if err != nil {
 		s.term.Errorf("Getinfo failed: %v", err)
 		return false
@@ -377,7 +377,7 @@ func (s *Scanner) validateStream(stream Stream) bool {
 	return false
 }
 
-func (s *Scanner) setGortsplibOptions(c Curler) {
+func (s *Scanner) setGortsplibOptions(c gortsplib.Client) {
 	// Do not write sdp in stdout
 	//_ = c.Setopt(curl.OPT_WRITEFUNCTION, doNotWrite)
 	// Do not use signals (would break multithreading).

@@ -1,6 +1,10 @@
 package cameradar
 
-import "time"
+import (
+	"time"
+
+	"github.com/aler9/gortsplib/pkg/headers"
+)
 
 // Stream represents a camera's RTSP stream
 type Stream struct {
@@ -15,7 +19,7 @@ type Stream struct {
 	RouteFound       bool `json:"route_found"`
 	Available        bool `json:"available"`
 
-	AuthenticationType int `json:"authentication_type"`
+	AuthenticationType headers.AuthMethod `json:"authentication_type"`
 }
 
 // Route returns this stream's route if there is one.

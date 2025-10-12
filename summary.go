@@ -6,7 +6,7 @@ import (
 	"io"
 
 	"github.com/Ullaakut/disgo/style"
-	gortspclient "github.com/aler9/gortsplib"
+	gortspclientauth "github.com/aler9/gortsplib/pkg/headers"
 )
 
 // PrintStreams prints information on each stream.
@@ -34,12 +34,12 @@ func (s *Scanner) PrintStreams(streams []Stream) {
 		s.term.Infof("\tRTSP port:\t\t%d\n", stream.Port)
 
 		switch stream.AuthenticationType {
-		case gortspclient.A.:
-			s.term.Infoln("\tThis camera does not require authentication")
-		case gortspclient.AUTH_BASIC:
+		case gortspclientauth.AuthBasic:
 			s.term.Infoln("\tAuth type:\t\tbasic")
-		case gortspclient.AUTH_DIGEST:
+		case gortspclientauth.AuthDigest:
 			s.term.Infoln("\tAuth type:\t\tdigest")
+		default:
+			s.term.Infoln("\tThis camera does not require authentication")
 		}
 
 		if stream.CredentialsFound {
