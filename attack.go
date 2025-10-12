@@ -4,21 +4,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/aler9/gortsplib"
-)
-
-// HTTP responses.
-const (
-	httpOK           = 200
-	httpUnauthorized = 401
-	httpForbidden    = 403
-	httpNotFound     = 404
-)
-
-// CURL RTSP request types.
-const (
-	rtspDescribe = 2
-	rtspSetup    = 4
+	"github.com/aler9/gortsplib/pkg/base"
+	"github.com/aler9/gortsplib/pkg/headers"
+	"github.com/aler9/gortsplib/pkg/url"
 )
 
 // Authentication types.
@@ -128,12 +116,12 @@ func (s *Scanner) DetectAuthMethods(targets []Stream) []Stream {
 
 		var authMethod string
 		switch targets[i].AuthenticationType {
-		case nil:
+		case authNone:
 			authMethod = "no"
-		case 0:
+		case authBasic:
 			authMethod = "basic"
 		case authDigest:
-			1 = "digest"
+			authMethod = "digest"
 		default:
 			authMethod = "unknown:" + string(targets[i].AuthenticationType)
 		}
@@ -188,9 +176,7 @@ func (s *Scanner) attackCameraRoute(target Stream, resChan chan<- Stream) {
 	resChan <- target
 }
 
-func (s *Scanner) detectAuthMethod(stream Stream) int {
-	//c := s.curl.Duphandle()
-
+func (s *Scanner) detectAuthMethod(stream Stream) headers.AuthMethod {
 	attackURL := fmt.Sprintf(
 		"rtsp://%s:%d/%s",
 		stream.Address,
@@ -198,38 +184,31 @@ func (s *Scanner) detectAuthMethod(stream Stream) int {
 		stream.Route(),
 	)
 
-	// s.setCurlOptions(c)
-
-	// Send a request to the URL of the stream we want to attack.
-	//_ = c.Setopt(curl.OPT_URL, attackURL)
-	// Set the RTSP STREAM URI as the stream URL.
-	//_ = c.Setopt(curl.OPT_RTSP_STREAM_URI, attackURL)
-	//_ = c.Setopt(curl.OPT_RTSP_REQUEST, rtspDescribe)
-
-	// Perform the request.
-	//err := c.Perform()
+	err := s.client.Start("rtsp", stream.Address)
 	if err != nil {
 		s.term.Errorf("Perform failed for %q (auth %d): %v", attackURL, stream.AuthenticationType, err)
 		return -1
 	}
+	url, err := url.Parse(attackURL)
+	if err != nil {
+		s.term.Errorf("Url parsing %q failed: %v", attackURL, err)
+		return -1
+	}
 
-	// authType, err := c.Getinfo(curl.INFO_HTTPAUTH_AVAIL)
-	// if err != nil {
-	// 	s.term.Errorf("Getinfo failed: %v", err)
-	// 	return -1
-	// }
+	rc, err := s.client.Options(url)
+	if err != nil {
+		s.term.Errorf("Getinfo failed: %v", err)
+		return -1
+	}
 
-	// if s.debug {
-	// 	s.term.Debugln("DESCRIBE", attackURL, "RTSP/1.0 >", authType)
-	// }
+	if s.debug {
+		s.term.Debugln("DESCRIBE", attackURL, "RTSP/1.0 >", rc)
+	}
 
-	// return authType.(int)
-	return 0
+	return 1 //to do
 }
 
 func (s *Scanner) routeAttack(stream Stream, route string) bool {
-	//c := s.curl.Duphandle()
-
 	attackURL := fmt.Sprintf(
 		"rtsp://%s:%s@%s:%d/%s",
 		stream.Username,
@@ -238,8 +217,6 @@ func (s *Scanner) routeAttack(stream Stream, route string) bool {
 		stream.Port,
 		route,
 	)
-
-	//s.setCurlOptions(c)
 
 	// Set proper authentication type.
 	// _ = c.Setopt(curl.OPT_HTTPAUTH, stream.AuthenticationType)
@@ -252,25 +229,30 @@ func (s *Scanner) routeAttack(stream Stream, route string) bool {
 	// _ = c.Setopt(curl.OPT_RTSP_REQUEST, rtspDescribe)
 
 	// Perform the request.
-	err := c.Perform()
+	err := s.client.Start("rtsp", stream.Address)
 	if err != nil {
 		s.term.Errorf("Perform failed for %q (auth %d): %v", attackURL, stream.AuthenticationType, err)
 		return false
 	}
 
-	// Get return code for the request.
-	// rc, err := c.Getinfo(curl.INFO_RESPONSE_CODE)
-	// if err != nil {
-	// 	s.term.Errorf("Getinfo failed: %v", err)
-	// 	return false
-	// }
+	url, err := url.Parse(attackURL)
+	if err != nil {
+		s.term.Errorf("Url parsing %q failed: %v", attackURL, err)
+		return false
+	}
+
+	rc, err := s.client.Options(url)
+	if err != nil {
+		s.term.Errorf("Getinfo failed: %v", err)
+		return false
+	}
 
 	if s.debug {
 		s.term.Debugln("DESCRIBE", attackURL, "RTSP/1.0 >", rc)
 	}
 	// If it's a 401 or 403, it means that the credentials are wrong but the route might be okay.
 	// If it's a 200, the stream is accessed successfully.
-	if rc == httpOK || rc == httpUnauthorized || rc == httpForbidden {
+	if rc.StatusCode == base.StatusOK || rc.StatusCode == base.StatusUnauthorized || rc.StatusCode == base.StatusForbidden {
 		return true
 	}
 	return false
@@ -300,16 +282,20 @@ func (s *Scanner) credAttack(stream Stream, username string, password string) bo
 	// _ = c.Setopt(curl.OPT_RTSP_STREAM_URI, attackURL)
 	// _ = c.Setopt(curl.OPT_RTSP_REQUEST, rtspDescribe)
 
-	// Perform the request.
-	//err := c.Perform()
-	s, err := 
+	err := s.client.Start("rtsp", stream.Address)
 	if err != nil {
 		s.term.Errorf("Perform failed for %q (auth %d): %v", attackURL, stream.AuthenticationType, err)
 		return false
 	}
 
 	// Get return code for the request.
-	//rc, err := c.Getinfo(curl.INFO_RESPONSE_CODE)
+	url, err := url.Parse(attackURL)
+	if err != nil {
+		s.term.Errorf("Url parsing %q failed: %v", attackURL, err)
+		return false
+	}
+
+	rc, err := s.client.Options(url)
 	if err != nil {
 		s.term.Errorf("Getinfo failed: %v", err)
 		return false
@@ -321,15 +307,13 @@ func (s *Scanner) credAttack(stream Stream, username string, password string) bo
 
 	// If it's a 404, it means that the route is incorrect but the credentials might be okay.
 	// If it's a 200, the stream is accessed successfully.
-	if rc == httpOK || rc == httpNotFound {
+	if rc.StatusCode == base.StatusOK || rc.StatusCode == base.StatusNotFound {
 		return true
 	}
 	return false
 }
 
 func (s *Scanner) validateStream(stream Stream) bool {
-	//c := s.curl.Duphandle()
-
 	attackURL := fmt.Sprintf(
 		"rtsp://%s:%s@%s:%d/%s",
 		stream.Username,
@@ -354,14 +338,20 @@ func (s *Scanner) validateStream(stream Stream) bool {
 	// _ = c.Setopt(curl.OPT_RTSP_TRANSPORT, "RTP/AVP;unicast;client_port=33332-33333")
 
 	// Perform the request.
-	//err := c.Perform()
+	err := s.client.Start("rtsp", stream.Address)
 	if err != nil {
 		s.term.Errorf("Perform failed for %q (auth %d): %v", attackURL, stream.AuthenticationType, err)
 		return false
 	}
 
+	url, err := url.Parse(attackURL)
+	if err != nil {
+		s.term.Errorf("Url parsing %q failed: %v", attackURL, err)
+		return false
+	}
+
 	// Get return code for the request.
-	//rc, err := c.Getinfo(curl.INFO_RESPONSE_CODE)
+	rc, err := s.client.Options(url)
 	if err != nil {
 		s.term.Errorf("Getinfo failed: %v", err)
 		return false
@@ -372,31 +362,30 @@ func (s *Scanner) validateStream(stream Stream) bool {
 	}
 
 	// If it's a 200, the stream is accessed successfully.
-	if rc == httpOK {
+	if rc.StatusCode == base.StatusOK {
 		return true
 	}
 	return false
 }
 
-func (s *Scanner) setGortsplibOptions(c gortsplib.Client) {
-	// Do not write sdp in stdout
-	//_ = c.Setopt(curl.OPT_WRITEFUNCTION, doNotWrite)
-	// Do not use signals (would break multithreading).
-	//_ = c.Setopt(curl.OPT_NOSIGNAL, 1)
-	// Do not send a body in the describe request.
-	//_ = c.Setopt(curl.OPT_NOBODY, 1)
-	// Set custom timeout.
-	//_ = c.Setopt(curl.OPT_TIMEOUT_MS, int(s.timeout/time.Millisecond))
+//func (s *Scanner) setGortsplibOptions(c gortsplib.Client) {
+// Do not write sdp in stdout
+//_ = c.Setopt(curl.OPT_WRITEFUNCTION, doNotWrite)
+// Do not use signals (would break multithreading).
+//_ = c.Setopt(curl.OPT_NOSIGNAL, 1)
+// Do not send a body in the describe request.
+//_ = c.Setopt(curl.OPT_NOBODY, 1)
+// Set custom timeout.
+//_ = c.Setopt(curl.OPT_TIMEOUT_MS, int(s.timeout/time.Millisecond))
 
-	// Enable verbose logs if verbose mode is on.
-	// if s.verbose {
-	// 	_ = c.Setopt(curl.OPT_VERBOSE, 1)
-	// } else {
-	// 	_ = c.Setopt(curl.OPT_VERBOSE, 0)
-	// }
-}
+// Enable verbose logs if verbose mode is on.
+// if s.verbose {
+// 	_ = c.Setopt(curl.OPT_VERBOSE, 1)
+// } else {
+// 	_ = c.Setopt(curl.OPT_VERBOSE, 0)
+// }
+//}
 
-// HACK: See https://stackoverflow.com/questions/3572397/lib-curl-in-c-disable-printing
 func doNotWrite([]uint8, interface{}) bool {
 	return true
 }
