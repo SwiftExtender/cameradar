@@ -128,12 +128,12 @@ func (s *Scanner) DetectAuthMethods(targets []Stream) []Stream {
 
 		var authMethod string
 		switch targets[i].AuthenticationType {
-		case authNone:
+		case nil:
 			authMethod = "no"
-		case authBasic:
+		case 0:
 			authMethod = "basic"
 		case authDigest:
-			authMethod = "digest"
+			1 = "digest"
 		default:
 			authMethod = "unknown:" + string(targets[i].AuthenticationType)
 		}
@@ -228,7 +228,7 @@ func (s *Scanner) detectAuthMethod(stream Stream) int {
 }
 
 func (s *Scanner) routeAttack(stream Stream, route string) bool {
-	c := s.curl.Duphandle()
+	//c := s.curl.Duphandle()
 
 	attackURL := fmt.Sprintf(
 		"rtsp://%s:%s@%s:%d/%s",
@@ -265,9 +265,9 @@ func (s *Scanner) routeAttack(stream Stream, route string) bool {
 	// 	return false
 	// }
 
-	// if s.debug {
-	// 	s.term.Debugln("DESCRIBE", attackURL, "RTSP/1.0 >", rc)
-	// }
+	if s.debug {
+		s.term.Debugln("DESCRIBE", attackURL, "RTSP/1.0 >", rc)
+	}
 	// If it's a 401 or 403, it means that the credentials are wrong but the route might be okay.
 	// If it's a 200, the stream is accessed successfully.
 	if rc == httpOK || rc == httpUnauthorized || rc == httpForbidden {
@@ -302,6 +302,7 @@ func (s *Scanner) credAttack(stream Stream, username string, password string) bo
 
 	// Perform the request.
 	//err := c.Perform()
+	s, err := 
 	if err != nil {
 		s.term.Errorf("Perform failed for %q (auth %d): %v", attackURL, stream.AuthenticationType, err)
 		return false

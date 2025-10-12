@@ -18,7 +18,6 @@ const (
 // Scanner represents a cameradar scanner. It scans a network and
 // attacks all streams found to get their RTSP credentials.
 type Scanner struct {
-	//curl Curler
 	client gortsplib.Client
 	term   *disgo.Terminal
 
