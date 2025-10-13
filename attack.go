@@ -195,7 +195,11 @@ func (s *Scanner) detectAuthMethod(stream Stream) headers.AuthMethod {
 		return -1
 	}
 
-	rc, err := s.client.Options(url)
+	tracks, respurl, rc, err := s.client.Describe(url)
+	fmt.Println("Debug method of authinfo")
+	fmt.Println(tracks)
+	fmt.Println(":::respurl:::")
+	fmt.Println(respurl)
 	if err != nil {
 		s.term.Errorf("Getinfo failed: %v", err)
 		return -1
