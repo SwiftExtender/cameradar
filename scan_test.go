@@ -3,6 +3,7 @@ package cameradar
 import (
 	"errors"
 	"io/ioutil"
+	//"io/ioutil"
 	"os"
 	"testing"
 

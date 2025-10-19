@@ -5,7 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
+
+	//"io/ioutil"
 	"os"
 	"strings"
 )
@@ -36,7 +37,7 @@ func (s *Scanner) LoadCredentials() error {
 	s.term.Debugf("Loading credentials dictionary from path %q\n", s.credentialDictionaryPath)
 
 	// Open & Read XML file.
-	content, err := ioutil.ReadFile(s.credentialDictionaryPath)
+	content, err := os.ReadFile(s.credentialDictionaryPath)
 	if err != nil {
 		return fmt.Errorf("could not read credentials dictionary file at %q: %v", s.credentialDictionaryPath, err)
 	}
@@ -109,7 +110,7 @@ func (s *Scanner) LoadTargets() error {
 	}
 	defer file.Close()
 
-	bytes, err := ioutil.ReadAll(file)
+	bytes, err := io.ReadAll(file)
 	if err != nil {
 		return fmt.Errorf("unable to read targets file %q: %v", path, err)
 	}

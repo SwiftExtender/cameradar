@@ -7,7 +7,6 @@ import (
 
 	"github.com/Ullaakut/disgo"
 	"github.com/Ullaakut/disgo/style"
-	"github.com/aler9/gortsplib"
 )
 
 const (
@@ -18,8 +17,8 @@ const (
 // Scanner represents a cameradar scanner. It scans a network and
 // attacks all streams found to get their RTSP credentials.
 type Scanner struct {
-	client gortsplib.Client
-	term   *disgo.Terminal
+	//client gortsplib.Client
+	term *disgo.Terminal
 
 	targets                  []string
 	ports                    []string
@@ -38,7 +37,7 @@ type Scanner struct {
 // New creates a new Cameradar Scanner and applies the given options.
 func New(options ...func(*Scanner)) (*Scanner, error) {
 	scanner := &Scanner{
-		client:                   gortsplib.Client{},
+		//client:                   gortsplib.Client{},
 		credentialDictionaryPath: defaultCredentialDictionaryPath,
 		routeDictionaryPath:      defaultRouteDictionaryPath,
 	}

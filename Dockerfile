@@ -7,9 +7,9 @@ WORKDIR /go/src/github.com/Ullaakut/cameradar/cmd/cameradar
 RUN apk update && \
     apk upgrade && \
     apk add nmap nmap-nselibs nmap-scripts \
-    curl curl-dev \
-    gcc \
-    libc-dev \
+#    curl curl-dev \
+#    gcc \
+#    libc-dev \
     git \
     pkgconfig
 ENV GO111MODULE=on
@@ -25,8 +25,8 @@ RUN echo 'http://dl-cdn.alpinelinux.org/alpine/v3.9/main' >> /etc/apk/repositori
 
 RUN apk --update add --no-cache nmap \
     nmap-nselibs \
-    nmap-scripts \
-    curl-dev==7.64.0-r5
+    nmap-scripts 
+#    curl-dev==7.64.0-r5
 
 WORKDIR /app/cameradar
 COPY --from=build-env /go/src/github.com/Ullaakut/cameradar/dictionaries/ /app/dictionaries/

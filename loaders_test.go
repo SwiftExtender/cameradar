@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"testing"
 
@@ -142,14 +142,14 @@ func TestLoadCredentials(t *testing.T) {
 					t.Fatalf("could not create xml file for LoadCredentials: %v. iteration: %d. file path: %s\n", err, i, filePath)
 				}
 
-				err = ioutil.WriteFile(filePath, test.input, 0644)
+				err = os.WriteFile(filePath, test.input, 0644)
 				if err != nil {
 					t.Fatalf("could not write xml file for LoadCredentials: %v. iteration: %d. file path: %s\n", err, i, filePath)
 				}
 			}
 
 			scanner := &Scanner{
-				term:                     disgo.NewTerminal(disgo.WithDefaultOutput(ioutil.Discard)),
+				term:                     disgo.NewTerminal(disgo.WithDefaultOutput(io.Discard)),
 				credentialDictionaryPath: filePath,
 			}
 
@@ -216,7 +216,7 @@ func TestLoadRoutes(t *testing.T) {
 					os.Exit(1)
 				}
 
-				err = ioutil.WriteFile(filePath, test.input, 0644)
+				err = os.WriteFile(filePath, test.input, 0644)
 				if err != nil {
 					fmt.Printf("could not write xml file for LoadRoutes: %v. iteration: %d. file path: %s\n", err, i, filePath)
 					os.Exit(1)
@@ -224,7 +224,7 @@ func TestLoadRoutes(t *testing.T) {
 			}
 
 			scanner := &Scanner{
-				term:                disgo.NewTerminal(disgo.WithDefaultOutput(ioutil.Discard)),
+				term:                disgo.NewTerminal(disgo.WithDefaultOutput(io.Discard)),
 				routeDictionaryPath: filePath,
 			}
 
@@ -418,7 +418,7 @@ func TestLoadTargets(t *testing.T) {
 			mfs.fileMock.WriteString("0.0.0.0\nlocalhost\n192.17.0.0/16\n192.168.1.140-255\n192.168.2-3.0-255")
 
 			scanner := &Scanner{
-				term:    disgo.NewTerminal(disgo.WithDefaultOutput(ioutil.Discard)),
+				term:    disgo.NewTerminal(disgo.WithDefaultOutput(io.Discard)),
 				targets: test.targets,
 			}
 
