@@ -1,16 +1,17 @@
 package cameradar
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"strings"
 	"time"
 
 	"github.com/bluenviron/gortsplib/v5"
-
 	"github.com/bluenviron/gortsplib/v5/pkg/base"
 	"github.com/bluenviron/gortsplib/v5/pkg/description"
 	"github.com/bluenviron/gortsplib/v5/pkg/format"
+	"github.com/bluenviron/gortsplib/v5/pkg/format/rtph264"
 	"github.com/bluenviron/gortsplib/v5/pkg/headers"
 	"github.com/pion/rtp"
 )
@@ -430,6 +431,23 @@ func (s *Scanner) credAttack(stream Stream, username string, password string) (b
 	return false, description.Session{}
 }
 
+// func saveToFile(img image.Image) error {
+// 	// create file
+// 	fname := strconv.FormatInt(time.Now().UnixNano()/int64(time.Millisecond), 10) + ".jpg"
+// 	f, err := os.Create(fname)
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// 	defer f.Close()
+
+// 	log.Println("saving", fname)
+
+// 	// convert to jpeg
+// 	return jpeg.Encode(f, img, &jpeg.Options{
+// 		Quality: 60,
+// 	})
+// }
+
 func (s *Scanner) validateStream(stream Stream) bool {
 	rawURL := fmt.Sprintf(
 		"rtsp://%s:%s@%s:%d/%s",
@@ -445,56 +463,90 @@ func (s *Scanner) validateStream(stream Stream) bool {
 		return false
 	}
 
-	client := gortsplib.Client{
+	c := gortsplib.Client{
 		Scheme: attackURL.Scheme,
 		Host:   attackURL.Host,
 	}
 
-	err = client.Start()
+	// connect to the server
+	err = c.Start()
 	if err != nil {
-		s.term.Errorf("Perform failed for %q (auth %d): %v", attackURL, stream.AuthenticationType, err)
-		return false
+		s.term.Error(err)
 	}
-	defer client.Close()
+	defer c.Close()
 
-	if s.debug {
-		s.term.Debugln("SETUP", attackURL, "RTSP/1.0 >")
-	}
-
-	err = client.SetupAll(stream.Media.BaseURL, stream.Media.Medias)
+	// find available medias
+	desc, _, err := c.Describe(attackURL)
 	if err != nil {
-		return false
-	} else {
-		client.OnPacketRTPAny(func(media *description.Media, _ format.Format, pkt *rtp.Packet) {
-			err2 := client.WritePacketRTP(media, pkt)
-			if err2 != nil {
+		s.term.Error(err)
+	}
+
+	// find the H264 media and format
+	var forma *format.H264
+	medi := desc.FindFormat(&forma)
+	if medi == nil {
+		s.term.Errorf("media not found")
+	}
+
+	// setup RTP -> H264 decoder
+	rtpDec, err := forma.CreateDecoder()
+	if err != nil {
+		s.term.Error(err)
+	}
+
+	// setup H264 -> MPEG-TS muxer
+	mpegtsMuxer := &mpegtsMuxer{
+		fileName: "mystream.ts",
+		sps:      forma.SPS,
+		pps:      forma.PPS,
+	}
+	err = mpegtsMuxer.initialize()
+	if err != nil {
+		s.term.Error(err)
+	}
+	defer mpegtsMuxer.close()
+
+	// setup a single media
+	_, err = c.Setup(desc.BaseURL, medi, 0, 0)
+	if err != nil {
+		s.term.Error(err)
+	}
+
+	// called when a RTP packet arrives
+	c.OnPacketRTP(medi, forma, func(pkt *rtp.Packet) {
+		// decode timestamp
+		pts, ok := c.PacketPTS(medi, pkt)
+		if !ok {
+			log.Printf("waiting for timestamp")
+			return
+		}
+
+		// extract access unit from RTP packets
+		au, err2 := rtpDec.Decode(pkt)
+		if err2 != nil {
+			if !errors.Is(err2, rtph264.ErrNonStartingPacketAndNoPrevious) && !errors.Is(err2, rtph264.ErrMorePacketsNeeded) {
 				log.Printf("ERR: %v", err2)
 			}
-		})
+			return
+		}
 
-		_, err = client.Play(nil)
-		if err != nil {
-			s.term.Errorf("Error of recording: %s in URL: %s", err, attackURL.String())
-			return false
+		// encode the access unit into MPEG-TS
+		err2 = mpegtsMuxer.writeH264(au, pts)
+		if err2 != nil {
+			log.Printf("ERR: %v", err2)
+			return
 		}
-		err = client.StartRecording(rawURL, &stream.Media)
-		if err != nil {
-			s.term.Errorf("Error of recording: %s in URL: %s", err, attackURL.String())
-			return false
-		}
-		// wait until a fatal error
-		//panic(reader.Wait())
-		return false
+
+		s.term.Info("saved TS packet")
+	})
+
+	// start playing
+	_, err = c.Play(nil)
+	if err != nil {
+		s.term.Error(err)
 	}
+
+	// wait until a fatal error
+	//panic(c.Wait())
+	return true
 }
-
-// Set custom timeout.
-//_ = c.Setopt(curl.OPT_TIMEOUT_MS, int(s.timeout/time.Millisecond))
-
-// Enable verbose logs if verbose mode is on.
-// if s.verbose {
-// 	_ = c.Setopt(curl.OPT_VERBOSE, 1)
-// } else {
-// 	_ = c.Setopt(curl.OPT_VERBOSE, 0)
-// }
-//}

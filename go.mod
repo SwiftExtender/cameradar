@@ -6,7 +6,8 @@ require (
 	github.com/PuerkitoBio/goquery v1.5.0
 	github.com/Ullaakut/disgo v0.3.1
 	github.com/Ullaakut/nmap v2.0.0+incompatible
-	github.com/bluenviron/gortsplib/v5 v5.1.0
+	github.com/bluenviron/gortsplib/v5 v5.1.1
+	github.com/bluenviron/mediacommon/v2 v2.5.1
 	github.com/pion/rtp v1.8.24
 	github.com/spf13/pflag v1.0.3
 	github.com/spf13/viper v1.4.0
@@ -17,7 +18,8 @@ require (
 require (
 	github.com/VividCortex/ewma v1.1.1 // indirect
 	github.com/andybalholm/cascadia v1.0.0 // indirect
-	github.com/bluenviron/mediacommon/v2 v2.5.0 // indirect
+	github.com/asticode/go-astikit v0.30.0 // indirect
+	github.com/asticode/go-astits v1.13.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/fatih/color v1.7.0 // indirect
 	github.com/fsnotify/fsnotify v1.4.7 // indirect
