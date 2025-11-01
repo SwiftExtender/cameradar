@@ -472,6 +472,7 @@ func (s *Scanner) validateStream(stream Stream) bool {
 	err = c.Start()
 	if err != nil {
 		s.term.Error(err)
+		return false
 	}
 	defer c.Close()
 
@@ -479,19 +480,22 @@ func (s *Scanner) validateStream(stream Stream) bool {
 	desc, _, err := c.Describe(attackURL)
 	if err != nil {
 		s.term.Error(err)
+		return false
 	}
 
 	// find the H264 media and format
 	var forma *format.H264
 	medi := desc.FindFormat(&forma)
 	if medi == nil {
-		s.term.Errorf("media not found")
+		s.term.Error("media not found")
+		return false
 	}
 
 	// setup RTP -> H264 decoder
 	rtpDec, err := forma.CreateDecoder()
 	if err != nil {
 		s.term.Error(err)
+		return false
 	}
 
 	// setup H264 -> MPEG-TS muxer
@@ -503,6 +507,7 @@ func (s *Scanner) validateStream(stream Stream) bool {
 	err = mpegtsMuxer.initialize()
 	if err != nil {
 		s.term.Error(err)
+		return false
 	}
 	defer mpegtsMuxer.close()
 
@@ -510,6 +515,7 @@ func (s *Scanner) validateStream(stream Stream) bool {
 	_, err = c.Setup(desc.BaseURL, medi, 0, 0)
 	if err != nil {
 		s.term.Error(err)
+		return false
 	}
 
 	// called when a RTP packet arrives
@@ -517,7 +523,7 @@ func (s *Scanner) validateStream(stream Stream) bool {
 		// decode timestamp
 		pts, ok := c.PacketPTS(medi, pkt)
 		if !ok {
-			log.Printf("waiting for timestamp")
+			log.Print("waiting for timestamp")
 			return
 		}
 
@@ -544,8 +550,9 @@ func (s *Scanner) validateStream(stream Stream) bool {
 	_, err = c.Play(nil)
 	if err != nil {
 		s.term.Error(err)
+		return false
 	}
-
+	c.Wait()
 	// wait until a fatal error
 	//panic(c.Wait())
 	return true
