@@ -78,11 +78,11 @@ func main() {
 		printErr(err)
 	}
 
-	scanResult, err := c.Scan()
+	scanResult, err := c.ScanHosts()
 	if err != nil {
 		printErr(err)
 	}
-
+	//c.
 	streams, err := c.Attack(scanResult)
 	if err != nil {
 		printErr(err)

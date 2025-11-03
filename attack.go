@@ -350,11 +350,8 @@ func (s *Scanner) detectAuthMethod(stream Stream) headers.AuthMethod {
 
 	_, rc, err := client.Describe(attackURL)
 	if err != nil {
-		s.term.Errorf("detectAuthMethod Getinfo failed: %v", err)
+		s.term.Errorf("detectAuthMethod Getinfo failed for %s: %v", attackURL, err)
 		return -1
-	}
-	if s.debug {
-		s.term.Debugln("DESCRIBE", attackURL, "RTSP/1.0 >", rc, "Response URL")
 	}
 
 	authinfo := detectAuthentication(rc)
@@ -378,13 +375,11 @@ func (s *Scanner) routeAttack(stream Stream, route string) bool {
 		Scheme: attackURL.Scheme,
 		Host:   attackURL.Host,
 	}
-
 	err = client.Start()
 	if err != nil {
 		s.term.Errorf("Perform failed for %q (auth %d): %v", attackURL, stream.AuthenticationType, err)
 		return false
 	}
-
 	_, rc, err := client.Describe(attackURL)
 	if err != nil {
 		if rc != nil && (rc.StatusCode == base.StatusOK || rc.StatusCode == base.StatusUnauthorized || rc.StatusCode == base.StatusForbidden) {
@@ -422,11 +417,8 @@ func (s *Scanner) credAttack(stream Stream, username string, password string) (b
 
 	desc, rc, err := client.Describe(attackURL)
 	if err != nil {
-		s.term.Errorf("credAttack Getinfo failed: %v", err)
+		s.term.Errorf("credAttack Getinfo failed for %s: %v", err, attackURL)
 		return false, description.Session{}
-	}
-	if s.debug {
-		s.term.Debugln("DESCRIBE", attackURL, "RTSP/1.0 >", rc, "Response URL")
 	}
 
 	// If it's a 404, it means that the route is incorrect but the credentials might be okay.

@@ -2,7 +2,9 @@ package cameradar
 
 import (
 	"fmt"
+	"net"
 	"os"
+	"sync"
 	"time"
 
 	"github.com/Ullaakut/disgo"
@@ -32,6 +34,95 @@ type Scanner struct {
 
 	credentials Credentials
 	routes      Routes
+}
+
+type PortStatus struct {
+	host     string
+	port     int
+	isOpened bool
+	isRTSP   bool
+	banner   string
+}
+
+func isPortRTSP(conn net.Conn) (bool, []byte, error) {
+	req := "OPTIONS * RTSP/1.0\r\nCSeq: 1\r\nContent-Length: 0\r\n\r\n"
+	buffer := make([]byte, 4)
+	fullbuffer := make([]byte, 256)
+	defer conn.Close()
+	_, err := conn.Write([]byte(req))
+	if err != nil {
+		return false, nil, err
+	}
+	_, err = conn.Read(fullbuffer)
+	if err != nil {
+		return false, nil, err
+	}
+	if len(fullbuffer) >= 4 {
+		copy(buffer, fullbuffer[:4])
+	}
+	if string(buffer) == "RTSP" {
+		return true, fullbuffer, nil
+	}
+	return false, fullbuffer, nil
+}
+
+func isPortOpened(protocol, hostname string, port int, timeout time.Duration, wg *sync.WaitGroup, results chan<- PortStatus) {
+	defer wg.Done()
+	address := fmt.Sprintf("%s:%d", hostname, port)
+	conn, err := net.DialTimeout(protocol, address, timeout*time.Second)
+	if err != nil {
+		results <- PortStatus{host: hostname, port: port, isOpened: false, isRTSP: false, banner: ""}
+		return
+	}
+	status, banner, err := isPortRTSP(conn)
+	if err != nil {
+		results <- PortStatus{host: hostname, port: port, isOpened: true, isRTSP: false, banner: string(banner)}
+		return
+	}
+	if status {
+		results <- PortStatus{host: hostname, port: port, isOpened: true, isRTSP: true, banner: string(banner)}
+		return
+	}
+	results <- PortStatus{host: hostname, port: port, isOpened: true, isRTSP: false, banner: string(banner)}
+}
+
+// ScanHost performs a port scan on a host for the given ports
+func (s *Scanner) ScanHosts() ([]Stream, error) {
+	var wg sync.WaitGroup
+	results := make(chan PortStatus, len(s.ports))
+
+	for _, host := range s.targets {
+		// Launch goroutine for each port
+		for _, port := range s.ports {
+			var numport int
+			// Parse integer from string
+			_, err := fmt.Sscanf(port, "%d", &numport)
+			if err != nil {
+				s.term.Error("Wrong port value:", err)
+				continue
+			}
+			wg.Add(1)
+			go isPortOpened("tcp", host, numport, s.timeout, &wg, results)
+		}
+	}
+	wg.Wait()
+	close(results)
+
+	// Collect results
+
+	var streams []Stream
+	for result := range results {
+		if result.isRTSP {
+			streams = append(streams, Stream{
+				//Device:  port.Service.Product,
+				Address:        result.host,
+				Port:           uint16(result.port),
+				BannerResponse: result.banner,
+			})
+		}
+	}
+
+	return streams, nil
 }
 
 // New creates a new Cameradar Scanner and applies the given options.

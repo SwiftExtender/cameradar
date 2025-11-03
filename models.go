@@ -9,16 +9,16 @@ import (
 
 // Stream represents a camera's RTSP stream
 type Stream struct {
-	Device   string   `json:"device"`
-	Username string   `json:"username"`
-	Password string   `json:"password"`
-	Routes   []string `json:"route"`
-	Address  string   `json:"address" validate:"required"`
-	Port     uint16   `json:"port" validate:"required"`
-
-	CredentialsFound bool `json:"credentials_found"`
-	RouteFound       bool `json:"route_found"`
-	Available        bool `json:"available"`
+	Device           string   `json:"device"`
+	Username         string   `json:"username"`
+	Password         string   `json:"password"`
+	Routes           []string `json:"route"`
+	Address          string   `json:"address" validate:"required"`
+	Port             uint16   `json:"port" validate:"required"`
+	BannerResponse   string   `json:"response"`
+	CredentialsFound bool     `json:"credentials_found"`
+	RouteFound       bool     `json:"route_found"`
+	Available        bool     `json:"available"`
 
 	Media              description.Session `json:"media"`
 	AuthenticationType headers.AuthMethod  `json:"authentication_type"`
