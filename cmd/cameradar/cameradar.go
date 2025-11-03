@@ -8,8 +8,6 @@ import (
 	"time"
 
 	"github.com/Ullaakut/cameradar/v5"
-	"github.com/Ullaakut/disgo"
-	"github.com/Ullaakut/disgo/style"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
@@ -60,7 +58,8 @@ func parseArguments() error {
 func main() {
 	err := parseArguments()
 	if err != nil {
-		printErr(err)
+		fmt.Println(err)
+		os.Exit(-1)
 	}
 
 	c, err := cameradar.New(
@@ -76,35 +75,33 @@ func main() {
 		cameradar.WithTimeout(viper.GetDuration("timeout")),
 	)
 	if err != nil {
-		printErr(err)
+		fmt.Println(err)
+		os.Exit(-1)
 	}
 
 	scanResult, err := c.ScanHosts()
 	if err != nil {
-		printErr(err)
+		fmt.Println(err)
+		os.Exit(-1)
 	}
 	//c.
 	streams, err := c.Attack(scanResult)
 	if err != nil {
-		printErr(err)
+		fmt.Println(err)
+		os.Exit(-1)
 	}
 
 	if path := viper.GetString("output-file"); path != "" {
 		file, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666)
 		if err != nil {
-			printErr(fmt.Errorf("opening output file %s: %w", path, err))
+			fmt.Errorf("opening output file %s: %w", path, err)
 		}
 
 		err = c.Write(file, streams)
 		if err != nil {
-			printErr(fmt.Errorf("writing to output file %s: %w", path, err))
+			fmt.Errorf("writing to output file %s: %w", path, err)
 		}
 	}
 
 	c.PrintStreams(streams)
-}
-
-func printErr(err error) {
-	disgo.Errorln(style.Failure(style.SymbolCross), err)
-	os.Exit(1)
 }

@@ -7,7 +7,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Ullaakut/disgo"
 	"github.com/bluenviron/gortsplib/v5"
 )
 
@@ -138,7 +137,7 @@ func New(options ...func(*Scanner)) (*Scanner, error) {
 
 	gopath := os.Getenv("GOPATH")
 	if gopath == "" && scanner.credentialDictionaryPath == defaultCredentialDictionaryPath && scanner.routeDictionaryPath == defaultRouteDictionaryPath {
-		disgo.Errorln("No $GOPATH was found.\nDictionaries may not be loaded properly, please set your $GOPATH to use the default dictionaries.")
+		fmt.Println("No $GOPATH was found.\nDictionaries may not be loaded properly, please set your $GOPATH to use the default dictionaries.")
 	}
 
 	scanner.credentialDictionaryPath = os.ExpandEnv(scanner.credentialDictionaryPath)
@@ -161,8 +160,6 @@ func New(options ...func(*Scanner)) (*Scanner, error) {
 		return nil, fmt.Errorf("unable to load credentials dictionary: %v", err)
 	}
 	fmt.Println("Beginning scan")
-	disgo.EndStep()
-
 	return scanner, nil
 }
 

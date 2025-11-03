@@ -3,18 +3,14 @@ module github.com/Ullaakut/cameradar/v5
 go 1.24.0
 
 require (
-	github.com/PuerkitoBio/goquery v1.5.0
 	github.com/bluenviron/gortsplib/v5 v5.1.1
 	github.com/bluenviron/mediacommon/v2 v2.5.1
 	github.com/pion/rtp v1.8.24
 	github.com/spf13/pflag v1.0.3
 	github.com/spf13/viper v1.4.0
-	github.com/vbauerster/mpb v3.4.0+incompatible
 )
 
 require (
-	github.com/VividCortex/ewma v1.1.1 // indirect
-	github.com/andybalholm/cascadia v1.0.0 // indirect
 	github.com/asticode/go-astikit v0.30.0 // indirect
 	github.com/asticode/go-astits v1.13.0 // indirect
 	github.com/fatih/color v1.7.0 // indirect
@@ -36,10 +32,8 @@ require (
 	github.com/spf13/afero v1.1.2 // indirect
 	github.com/spf13/cast v1.3.0 // indirect
 	github.com/spf13/jwalterweatherman v1.0.0 // indirect
-	golang.org/x/crypto v0.43.0 // indirect
 	golang.org/x/net v0.46.0 // indirect
 	golang.org/x/sys v0.37.0 // indirect
-	golang.org/x/term v0.36.0 // indirect
 	golang.org/x/text v0.30.0 // indirect
 	gopkg.in/yaml.v2 v2.2.8 // indirect
 )
