@@ -64,6 +64,7 @@ func main() {
 	}
 
 	c, err := cameradar.New(
+		//cameradar.WithClient(new gortsplib.),
 		cameradar.WithTargets(viper.GetStringSlice("targets")),
 		cameradar.WithPorts(viper.GetStringSlice("ports")),
 		cameradar.WithDebug(viper.GetBool("debug")),

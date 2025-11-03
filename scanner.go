@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/Ullaakut/disgo"
-	"github.com/Ullaakut/disgo/style"
+	"github.com/bluenviron/gortsplib/v5"
 )
 
 const (
@@ -19,8 +19,7 @@ const (
 // Scanner represents a cameradar scanner. It scans a network and
 // attacks all streams found to get their RTSP credentials.
 type Scanner struct {
-	//client gortsplib.Client
-	term *disgo.Terminal
+	client *gortsplib.Client
 
 	targets                  []string
 	ports                    []string
@@ -98,7 +97,7 @@ func (s *Scanner) ScanHosts() ([]Stream, error) {
 			// Parse integer from string
 			_, err := fmt.Sscanf(port, "%d", &numport)
 			if err != nil {
-				s.term.Error("Wrong port value:", err)
+				fmt.Errorf("Wrong port value:", err)
 				continue
 			}
 			wg.Add(1)
@@ -139,33 +138,29 @@ func New(options ...func(*Scanner)) (*Scanner, error) {
 
 	gopath := os.Getenv("GOPATH")
 	if gopath == "" && scanner.credentialDictionaryPath == defaultCredentialDictionaryPath && scanner.routeDictionaryPath == defaultRouteDictionaryPath {
-		disgo.Errorln(style.Failure("No $GOPATH was found.\nDictionaries may not be loaded properly, please set your $GOPATH to use the default dictionaries."))
+		disgo.Errorln("No $GOPATH was found.\nDictionaries may not be loaded properly, please set your $GOPATH to use the default dictionaries.")
 	}
 
 	scanner.credentialDictionaryPath = os.ExpandEnv(scanner.credentialDictionaryPath)
 	scanner.routeDictionaryPath = os.ExpandEnv(scanner.routeDictionaryPath)
-
-	scanner.term = disgo.NewTerminal(
-		disgo.WithDebug(scanner.debug),
-	)
 
 	err := scanner.LoadTargets()
 	if err != nil {
 		return nil, fmt.Errorf("unable to parse target file: %v", err)
 	}
 
-	scanner.term.StartStepf("Loading credentials")
+	fmt.Println("Loading credentials")
 	err = scanner.LoadCredentials()
 	if err != nil {
-		return nil, scanner.term.FailStepf("unable to load credentials dictionary: %v", err)
+		return nil, fmt.Errorf("unable to load credentials dictionary: %v", err)
 	}
 
-	scanner.term.StartStepf("Loading routes")
+	fmt.Println("Loading routes")
 	err = scanner.LoadRoutes()
 	if err != nil {
-		return nil, scanner.term.FailStepf("unable to load credentials dictionary: %v", err)
+		return nil, fmt.Errorf("unable to load credentials dictionary: %v", err)
 	}
-
+	fmt.Println("Beginning scan")
 	disgo.EndStep()
 
 	return scanner, nil
@@ -240,3 +235,9 @@ func WithTimeout(timeout time.Duration) func(s *Scanner) {
 		s.timeout = timeout
 	}
 }
+
+// func WithClient(targets []string) func(s *Scanner) {
+// 	return func(s *Scanner) {
+// 		s.targets = targets
+// 	}
+// }

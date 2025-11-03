@@ -42,35 +42,35 @@ func (s *Scanner) Attack(targets []Stream) ([]Stream, error) {
 	if len(targets) == 0 {
 		return nil, fmt.Errorf("no stream found")
 	}
-
+	//s.client = &gortsplib.Client{}
 	// Most cameras will be accessed successfully with these two attacks.
-	s.term.StartStepf("Attacking routes of %d streams", len(targets))
+	fmt.Printf("Attacking routes of %d streams", len(targets))
 	streams := s.AttackRoute(targets)
 
-	s.term.StartStepf("Attempting to detect authentication methods of %d streams", len(targets))
+	fmt.Printf("Attempting to detect authentication methods of %d streams", len(targets))
 	streams = s.DetectAuthMethods(streams)
 
-	s.term.StartStepf("Attacking credentials of %d streams", len(targets))
+	fmt.Printf("Attacking credentials of %d streams", len(targets))
 	streams = s.AttackCredentials(streams)
 
-	s.term.StartStep("Validating that streams are accessible")
+	fmt.Printf("Validating that streams are accessible")
 	streams = s.ValidateStreams(streams)
 
+	fmt.Println("Streams after first round of attack")
+	s.PrintStreams(streams)
 	// But some cameras run GST RTSP Server which prioritizes 401 over 404 contrary to most cameras.
 	// For these cameras, running another route attack will solve the problem.
 	for _, stream := range streams {
 		if !stream.RouteFound || !stream.CredentialsFound || !stream.Available {
-			s.term.StartStepf("Second round of attacks")
+			fmt.Println("Second round of attacks")
 			streams = s.AttackRoute(streams)
 
-			s.term.StartStep("Validating that streams are accessible")
+			fmt.Printf("Validating that streams are accessible")
 			streams = s.ValidateStreams(streams)
 
 			break
 		}
 	}
-
-	s.term.EndStep()
 
 	return streams, nil
 }
@@ -110,7 +110,7 @@ func (s *Scanner) AttackCredentials(targets []Stream) []Stream {
 func (s *Scanner) AttackRoute(targets []Stream) []Stream {
 	resChan := make(chan Stream)
 	defer close(resChan)
-
+	fmt.Println("AttackRoute")
 	for i := range targets {
 		go s.attackCameraRoute(targets[i], resChan)
 	}
@@ -144,7 +144,7 @@ func (s *Scanner) DetectAuthMethods(targets []Stream) []Stream {
 			authMethod = "unknown:" + string(targets[i].AuthenticationType)
 		}
 
-		s.term.Debugf("Stream %s uses %s authentication method\n", GetCameraRTSPURL(targets[i]), authMethod)
+		fmt.Printf("Stream %s uses %s authentication method\n", GetCameraRTSPURL(targets[i]), authMethod)
 	}
 
 	return targets
@@ -180,7 +180,7 @@ func (s *Scanner) attackCameraRoute(target Stream, resChan chan<- Stream) {
 		target.Routes = append(target.Routes, "/")
 		resChan <- target
 		if s.debug {
-			s.term.Debugln("Positive to dummy route: %s", target.Address)
+			fmt.Printf("Positive to dummy route: %s", target.Address)
 		}
 		return
 	}
@@ -192,7 +192,7 @@ func (s *Scanner) attackCameraRoute(target Stream, resChan chan<- Stream) {
 			target.RouteFound = true
 			target.Routes = append(target.Routes, route)
 			if s.debug {
-				s.term.Debugln("Negative to dummy route: %s", target.Address)
+				fmt.Printf("Negative to dummy route: %s", target.Address)
 			}
 		}
 		time.Sleep(s.attackInterval)
@@ -293,35 +293,35 @@ func detectAuthentication(resp *base.Response) *AuthInfo {
 // 	for i, media := range medias {
 // 		switch t := media[i].Formats.(type) {
 // 		case *gortsplib.H264:
-// 			mes = fmt.Sprintf("Track %d: H264 (SPS: %v, PPS: %v)", i, t.SPS, t.PPS)
+// 			mes = fmt.Printf("Track %d: H264 (SPS: %v, PPS: %v)", i, t.SPS, t.PPS)
 // 		case *gortsplib.TrackGeneric:
-// 			mes = fmt.Sprintf("Track %d: Generic (Media: %v)", i, t.Media)
+// 			mes = fmt.Printf("Track %d: Generic (Media: %v)", i, t.Media)
 // 		case *gortsplib.TrackG711:
-// 			mes = fmt.Sprintf("Track %d: G711 (MuLAW: %t)", i, t.MULaw)
+// 			mes = fmt.Printf("Track %d: G711 (MuLAW: %t)", i, t.MULaw)
 // 		case *gortsplib.TrackG722:
-// 			mes = fmt.Sprintf("Track %d: G722", i)
+// 			mes = fmt.Printf("Track %d: G722", i)
 // 		//case *gortsplib.TrackGenericPayload:
-// 		//	mes = fmt.Sprintf("Track %d: GenericPayload (FMTP: %s, RTPMap: %s, Type: %d)", i, t.FMTP, t.RTPMap, t.Type)
+// 		//	mes = fmt.Printf("Track %d: GenericPayload (FMTP: %s, RTPMap: %s, Type: %d)", i, t.FMTP, t.RTPMap, t.Type)
 // 		case *gortsplib.TrackH265:
-// 			mes = fmt.Sprintf("Track %d: H265 (MaxDONDiff: %d, PPS: %v, PayloadType: %d, SPS: %v, VPS: %v)", i, t.MaxDONDiff, t.PPS, t.PayloadType, t.SPS, t.VPS)
+// 			mes = fmt.Printf("Track %d: H265 (MaxDONDiff: %d, PPS: %v, PayloadType: %d, SPS: %v, VPS: %v)", i, t.MaxDONDiff, t.PPS, t.PayloadType, t.SPS, t.VPS)
 // 		case *gortsplib.TrackJPEG:
-// 			mes = fmt.Sprintf("Track %d: JPEG (ConnectionInformation.AddressType: %s)", i, t.MediaDescription().ConnectionInformation.AddressType) //make more then
+// 			mes = fmt.Printf("Track %d: JPEG (ConnectionInformation.AddressType: %s)", i, t.MediaDescription().ConnectionInformation.AddressType) //make more then
 // 		case *gortsplib.TrackLPCM:
-// 			mes = fmt.Sprintf("Track %d: LPCM (BitDepth: %d, ChannelCount: %d, PayloadType: %d, SampleRate: %d)", i, t.BitDepth, t.ChannelCount, t.PayloadType, t.SampleRate)
+// 			mes = fmt.Printf("Track %d: LPCM (BitDepth: %d, ChannelCount: %d, PayloadType: %d, SampleRate: %d)", i, t.BitDepth, t.ChannelCount, t.PayloadType, t.SampleRate)
 // 		case *gortsplib.TrackMPEG2Audio:
-// 			mes = fmt.Sprintf("Track %d: MPEG2Audio (Control: %s, Codec: %s)", i, t.GetControl(), t.String()) //make more then
+// 			mes = fmt.Printf("Track %d: MPEG2Audio (Control: %s, Codec: %s)", i, t.GetControl(), t.String()) //make more then
 // 		case *gortsplib.TrackMPEG2Video:
-// 			mes = fmt.Sprintf("Track %d: MPEG2Video (Control: %s, Codec: %s)", i, t.GetControl(), t.String()) //make more then
+// 			mes = fmt.Printf("Track %d: MPEG2Video (Control: %s, Codec: %s)", i, t.GetControl(), t.String()) //make more then
 // 		case *gortsplib.TrackMPEG4Audio:
-// 			mes = fmt.Sprintf("Track %d: MPEG4Audio (Control: %s, Codec: %s)", i, t.GetControl(), t.String()) //make more then
+// 			mes = fmt.Printf("Track %d: MPEG4Audio (Control: %s, Codec: %s)", i, t.GetControl(), t.String()) //make more then
 // 		case *gortsplib.TrackOpus:
-// 			mes = fmt.Sprintf("Track %d: Opus (Control: %s, Codec: %s)", i, t.GetControl(), t.String()) //make more then
+// 			mes = fmt.Printf("Track %d: Opus (Control: %s, Codec: %s)", i, t.GetControl(), t.String()) //make more then
 // 		case *gortsplib.TrackVP8:
-// 			mes = fmt.Sprintf("Track %d: Vp8 (Control: %s, Codec: %s)", i, t.GetControl(), t.String()) //make more then
+// 			mes = fmt.Printf("Track %d: Vp8 (Control: %s, Codec: %s)", i, t.GetControl(), t.String()) //make more then
 // 		case *gortsplib.TrackVP9:
-// 			mes = fmt.Sprintf("Track %d: Vp9 (Control: %s, Codec: %s)", i, t.GetControl(), t.String()) //make more then
+// 			mes = fmt.Printf("Track %d: Vp9 (Control: %s, Codec: %s)", i, t.GetControl(), t.String()) //make more then
 // 		case *gortsplib.TrackVorbis:
-// 			mes = fmt.Sprintf("Track %d: Vorbis (Control: %s, Codec: %s)", i, t.GetControl(), t.String()) //make more then
+// 			mes = fmt.Printf("Track %d: Vorbis (Control: %s, Codec: %s)", i, t.GetControl(), t.String()) //make more then
 // 		default:
 // 			mes = "Unknown type"
 // 		}
@@ -333,7 +333,7 @@ func (s *Scanner) detectAuthMethod(stream Stream) headers.AuthMethod {
 	rawURL := fmt.Sprintf(("rtsp://%s:%d/%s"), stream.Address, stream.Port, stream.Route())
 	attackURL, err := base.ParseURL(rawURL)
 	if err != nil {
-		s.term.Errorf("Url parsing %q failed: %v", rawURL, err)
+		fmt.Errorf("Url parsing %q failed: %v", rawURL, err)
 		return -1
 	}
 
@@ -342,15 +342,15 @@ func (s *Scanner) detectAuthMethod(stream Stream) headers.AuthMethod {
 		Host:   attackURL.Host,
 	}
 
-	err = client.Start()
-	if err != nil {
-		s.term.Errorf("Perform failed for %q (auth %d): %v", attackURL, stream.AuthenticationType, err)
-		return -1
-	}
+	// err = client.Start()
+	// if err != nil {
+	// 	s.term.Errorf("Perform failed for %q (auth %d): %v", attackURL, stream.AuthenticationType, err)
+	// 	return -1
+	// }
 
 	_, rc, err := client.Describe(attackURL)
 	if err != nil {
-		s.term.Errorf("detectAuthMethod Getinfo failed for %s: %v", attackURL, err)
+		fmt.Errorf("detectAuthMethod Getinfo failed for %s: %v", attackURL, err)
 		return -1
 	}
 
@@ -367,28 +367,31 @@ func (s *Scanner) routeAttack(stream Stream, route string) bool {
 	rawURL := fmt.Sprintf(("rtsp://%s:%d/%s"), stream.Address, stream.Port, stream.Route())
 	attackURL, err := base.ParseURL(rawURL)
 	if err != nil {
-		s.term.Errorf("Url parsing %q failed: %v", rawURL, err)
+		fmt.Errorf("Url parsing %q failed: %v", rawURL, err)
 		return false
 	}
 
-	client := gortsplib.Client{
+	s.client = &gortsplib.Client{
 		Scheme: attackURL.Scheme,
 		Host:   attackURL.Host,
 	}
-	err = client.Start()
-	if err != nil {
-		s.term.Errorf("Perform failed for %q (auth %d): %v", attackURL, stream.AuthenticationType, err)
-		return false
-	}
-	_, rc, err := client.Describe(attackURL)
+	//s.client.Scheme = attackURL.Scheme
+	//s.client.Host = attackURL.Host
+
+	// err = client.Start()
+	// if err != nil {
+	// 	s.term.Errorf("Perform failed for %q (auth %d): %v", attackURL, stream.AuthenticationType, err)
+	// 	return false
+	// }
+	_, rc, err := s.client.Describe(attackURL)
 	if err != nil {
 		if rc != nil && (rc.StatusCode == base.StatusOK || rc.StatusCode == base.StatusUnauthorized || rc.StatusCode == base.StatusForbidden) {
 			if s.debug {
-				s.term.Debugln("Successfull DESCRIBE", attackURL, "RTSP/1.0 >", rc, "Response URL")
+				fmt.Println("Successfull DESCRIBE", attackURL, "RTSP/1.0 >", rc, "Response URL")
 			}
 			return true
 		} else {
-			s.term.Errorf("routeAttack Getinfo failed: %v", err)
+			fmt.Errorf("routeAttack Getinfo failed: %v", err)
 			return false
 		}
 	} else {
@@ -400,24 +403,22 @@ func (s *Scanner) credAttack(stream Stream, username string, password string) (b
 	rawURL := fmt.Sprintf(("rtsp://%s:%d/%s"), stream.Address, stream.Port, stream.Route())
 	attackURL, err := base.ParseURL(rawURL)
 	if err != nil {
-		s.term.Errorf("Url parsing %q failed: %v", rawURL, err)
+		fmt.Errorf("Url parsing %q failed: %v", rawURL, err)
 		return false, description.Session{}
 	}
 
-	client := gortsplib.Client{
-		Scheme: attackURL.Scheme,
-		Host:   attackURL.Host,
-	}
+	s.client.Scheme = attackURL.Scheme
+	s.client.Host = attackURL.Host
 
-	err = client.Start()
-	if err != nil {
-		s.term.Errorf("Perform failed for %q (auth %d): %v", attackURL, stream.AuthenticationType, err)
-		return false, description.Session{}
-	}
+	// err = client.Start()
+	// if err != nil {
+	// 	s.term.Errorf("Perform failed for %q (auth %d): %v", attackURL, stream.AuthenticationType, err)
+	// 	return false, description.Session{}
+	// }
 
-	desc, rc, err := client.Describe(attackURL)
+	desc, rc, err := s.client.Describe(attackURL)
 	if err != nil {
-		s.term.Errorf("credAttack Getinfo failed for %s: %v", err, attackURL)
+		fmt.Errorf("credAttack Getinfo failed for %s: %v", err, attackURL)
 		return false, description.Session{}
 	}
 
@@ -457,27 +458,25 @@ func (s *Scanner) validateStream(stream Stream) bool {
 	)
 	attackURL, err := base.ParseURL(rawURL)
 	if err != nil {
-		s.term.Errorf("Url parsing %q failed: %v", rawURL, err)
+		fmt.Errorf("Url parsing %q failed: %v", rawURL, err)
 		return false
 	}
 
-	c := gortsplib.Client{
-		Scheme: attackURL.Scheme,
-		Host:   attackURL.Host,
-	}
+	s.client.Scheme = attackURL.Scheme
+	s.client.Host = attackURL.Host
 
 	// connect to the server
-	err = c.Start()
+	err = s.client.Start()
 	if err != nil {
-		s.term.Error(err)
+		fmt.Println(err)
 		return false
 	}
-	defer c.Close()
+	defer s.client.Close()
 
 	// find available medias
-	desc, _, err := c.Describe(attackURL)
+	desc, _, err := s.client.Describe(attackURL)
 	if err != nil {
-		s.term.Error(err)
+		fmt.Println(err)
 		return false
 	}
 
@@ -485,14 +484,14 @@ func (s *Scanner) validateStream(stream Stream) bool {
 	var forma *format.H264
 	medi := desc.FindFormat(&forma)
 	if medi == nil {
-		s.term.Error("media not found")
+		fmt.Errorf("media not found")
 		return false
 	}
 
 	// setup RTP -> H264 decoder
 	rtpDec, err := forma.CreateDecoder()
 	if err != nil {
-		s.term.Error(err)
+		fmt.Println(err)
 		return false
 	}
 
@@ -504,22 +503,22 @@ func (s *Scanner) validateStream(stream Stream) bool {
 	}
 	err = mpegtsMuxer.initialize()
 	if err != nil {
-		s.term.Error(err)
+		fmt.Println(err)
 		return false
 	}
 	defer mpegtsMuxer.close()
 
 	// setup a single media
-	_, err = c.Setup(desc.BaseURL, medi, 0, 0)
+	_, err = s.client.Setup(desc.BaseURL, medi, 0, 0)
 	if err != nil {
-		s.term.Error(err)
+		fmt.Println(err)
 		return false
 	}
 
 	// called when a RTP packet arrives
-	c.OnPacketRTP(medi, forma, func(pkt *rtp.Packet) {
+	s.client.OnPacketRTP(medi, forma, func(pkt *rtp.Packet) {
 		// decode timestamp
-		pts, ok := c.PacketPTS(medi, pkt)
+		pts, ok := s.client.PacketPTS(medi, pkt)
 		if !ok {
 			log.Print("waiting for timestamp")
 			return
@@ -541,16 +540,16 @@ func (s *Scanner) validateStream(stream Stream) bool {
 			return
 		}
 
-		s.term.Info("saved TS packet")
+		fmt.Println("saved TS packet")
 	})
 
 	// start playing
-	_, err = c.Play(nil)
+	_, err = s.client.Play(nil)
 	if err != nil {
-		s.term.Error(err)
+		fmt.Println(err)
 		return false
 	}
-	c.Wait()
+	s.client.Wait()
 	// wait until a fatal error
 	//panic(c.Wait())
 	return true

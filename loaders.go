@@ -34,7 +34,7 @@ func (osFS) Stat(name string) (os.FileInfo, error) { return os.Stat(name) }
 
 // LoadCredentials opens a dictionary file and returns its contents as a Credentials structure.
 func (s *Scanner) LoadCredentials() error {
-	s.term.Debugf("Loading credentials dictionary from path %q\n", s.credentialDictionaryPath)
+	fmt.Println("Loading credentials dictionary from path %q\n", s.credentialDictionaryPath)
 
 	// Open & Read XML file.
 	content, err := os.ReadFile(s.credentialDictionaryPath)
@@ -48,13 +48,13 @@ func (s *Scanner) LoadCredentials() error {
 		return fmt.Errorf("unable to unmarshal dictionary contents: %v", err)
 	}
 
-	s.term.Debugf("Loaded %d usernames and %d passwords\n", len(s.credentials.Usernames), len(s.credentials.Passwords))
+	fmt.Println("Loaded %d usernames and %d passwords\n", len(s.credentials.Usernames), len(s.credentials.Passwords))
 	return nil
 }
 
 // LoadRoutes opens a dictionary file and returns its contents as a Routes structure.
 func (s *Scanner) LoadRoutes() error {
-	s.term.Debugf("Loading routes dictionary from path %q\n", s.routeDictionaryPath)
+	fmt.Println("Loading routes dictionary from path %q\n", s.routeDictionaryPath)
 
 	file, err := os.Open(s.routeDictionaryPath)
 	if err != nil {
@@ -67,7 +67,7 @@ func (s *Scanner) LoadRoutes() error {
 		s.routes = append(s.routes, scanner.Text())
 	}
 
-	s.term.Debugf("Loaded %d routes\n", len(s.routes))
+	fmt.Printf("Loaded %d routes\n", len(s.routes))
 
 	return scanner.Err()
 }
@@ -117,7 +117,7 @@ func (s *Scanner) LoadTargets() error {
 
 	s.targets = strings.Split(string(bytes), "\n")
 
-	s.term.Debugf("Successfully parsed targets file with %d entries", len(s.targets))
+	fmt.Printf("Successfully parsed targets file with %d entries", len(s.targets))
 
 	return nil
 }
