@@ -179,6 +179,9 @@ func (s *Scanner) attackCameraRoute(target Stream, resChan chan<- Stream) {
 		target.RouteFound = true
 		target.Routes = append(target.Routes, "/")
 		resChan <- target
+		if s.debug {
+			s.term.Debugln("Positive to dummy route: %s", target.Address)
+		}
 		return
 	}
 
@@ -188,6 +191,9 @@ func (s *Scanner) attackCameraRoute(target Stream, resChan chan<- Stream) {
 		if ok {
 			target.RouteFound = true
 			target.Routes = append(target.Routes, route)
+			if s.debug {
+				s.term.Debugln("Negative to dummy route: %s", target.Address)
+			}
 		}
 		time.Sleep(s.attackInterval)
 	}
@@ -344,7 +350,7 @@ func (s *Scanner) detectAuthMethod(stream Stream) headers.AuthMethod {
 
 	_, rc, err := client.Describe(attackURL)
 	if err != nil {
-		s.term.Errorf("Getinfo failed: %v", err)
+		s.term.Errorf("detectAuthMethod Getinfo failed: %v", err)
 		return -1
 	}
 	if s.debug {
@@ -381,18 +387,18 @@ func (s *Scanner) routeAttack(stream Stream, route string) bool {
 
 	_, rc, err := client.Describe(attackURL)
 	if err != nil {
-		s.term.Errorf("Getinfo failed: %v", err)
-		return false
-	}
-	if s.debug {
-		s.term.Debugln("DESCRIBE", attackURL, "RTSP/1.0 >", rc, "Response URL")
-	}
-	// If it's a 401 or 403, it means that the credentials are wrong but the route might be okay.
-	// If it's a 200, the stream is accessed successfully.
-	if rc.StatusCode == base.StatusOK || rc.StatusCode == base.StatusUnauthorized || rc.StatusCode == base.StatusForbidden {
+		if rc != nil && (rc.StatusCode == base.StatusOK || rc.StatusCode == base.StatusUnauthorized || rc.StatusCode == base.StatusForbidden) {
+			if s.debug {
+				s.term.Debugln("Successfull DESCRIBE", attackURL, "RTSP/1.0 >", rc, "Response URL")
+			}
+			return true
+		} else {
+			s.term.Errorf("routeAttack Getinfo failed: %v", err)
+			return false
+		}
+	} else {
 		return true
 	}
-	return false
 }
 
 func (s *Scanner) credAttack(stream Stream, username string, password string) (bool, description.Session) {
@@ -416,7 +422,7 @@ func (s *Scanner) credAttack(stream Stream, username string, password string) (b
 
 	desc, rc, err := client.Describe(attackURL)
 	if err != nil {
-		s.term.Errorf("Getinfo failed: %v", err)
+		s.term.Errorf("credAttack Getinfo failed: %v", err)
 		return false, description.Session{}
 	}
 	if s.debug {
