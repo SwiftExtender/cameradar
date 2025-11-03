@@ -4,7 +4,6 @@ go 1.24.0
 
 require (
 	github.com/PuerkitoBio/goquery v1.5.0
-	github.com/Ullaakut/disgo v0.3.1
 	github.com/bluenviron/gortsplib/v5 v5.1.1
 	github.com/bluenviron/mediacommon/v2 v2.5.1
 	github.com/pion/rtp v1.8.24

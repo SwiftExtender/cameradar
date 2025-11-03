@@ -4,26 +4,24 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-
-	"github.com/Ullaakut/disgo/style"
 	//gortspclientauth "github.com/bluenviron/gortsplib/v5/pkg/headers"
 )
 
 // PrintStreams prints information on each stream.
 func (s *Scanner) PrintStreams(streams []Stream) {
 	if len(streams) == 0 {
-		fmt.Printf("%s No streams were found. Please make sure that your target is on an accessible network.\n", style.Failure(style.SymbolCross))
+		fmt.Println("No streams were found. Please make sure that your target is on an accessible network.")
 	}
 
 	success := 0
 	for _, stream := range streams {
 		if stream.Available {
-			fmt.Printf("%s\tDevice RTSP URL:\t%s\n", style.Success(style.SymbolRightTriangle), style.Link(GetCameraRTSPURL(stream)))
-			fmt.Printf("\tAvailable:\t\t%s\n", style.Success(style.SymbolCheck))
+			fmt.Printf("\tDevice RTSP URL:\t%s\n", (GetCameraRTSPURL(stream)))
+			fmt.Println("\tAvailable:)")
 			success++
 		} else {
-			fmt.Printf("%s\tAdmin panel URL:\t%s You can use this URL to try attacking the camera's admin panel instead.\n", style.Failure(style.SymbolCross), style.Link(GetCameraAdminPanelURL(stream)))
-			fmt.Printf("\tAvailable:\t\t%s\n", style.Failure(style.SymbolCross))
+			fmt.Printf("\tAdmin panel URL:\t%s You can use this URL to try attacking the camera's admin panel instead.\n", GetCameraAdminPanelURL(stream))
+			fmt.Println("\tAvailable:)")
 		}
 
 		if len(stream.Device) > 0 {
@@ -43,17 +41,17 @@ func (s *Scanner) PrintStreams(streams []Stream) {
 		// }
 
 		if stream.CredentialsFound {
-			fmt.Printf("\tUsername:\t\t%s\n", style.Success(stream.Username))
-			fmt.Printf("\tPassword:\t\t%s\n", style.Success(stream.Password))
+			fmt.Printf("\tUsername:\t\t%s\n", stream.Username)
+			fmt.Printf("\tPassword:\t\t%s\n", stream.Password)
 		} else {
-			fmt.Printf("\tUsername:\t\t%s\n", style.Failure("not found"))
-			fmt.Printf("\tPassword:\t\t%s\n", style.Failure("not found"))
+			fmt.Printf("\tUsername:\t\t%s\n", "not found")
+			fmt.Printf("\tPassword:\t\t%s\n", "not found")
 		}
 
 		fmt.Printf("\tRTSP routes:")
 		if stream.RouteFound {
 			for _, route := range stream.Routes {
-				fmt.Printf(style.Success("\t\t\t\t/" + route))
+				fmt.Printf("\t\t\t\t/" + route)
 			}
 		} else {
 			fmt.Println("not found")
@@ -63,11 +61,11 @@ func (s *Scanner) PrintStreams(streams []Stream) {
 	}
 
 	if success > 1 {
-		fmt.Printf("%s Successful attack: %s devices were accessed", style.Success(style.SymbolCheck), style.Success(len(streams)))
+		fmt.Printf("Successful attack: %d devices were accessed", len(streams))
 	} else if success == 1 {
-		fmt.Printf("%s Successful attack: %s device was accessed", style.Success(style.SymbolCheck), style.Success("one"))
+		fmt.Printf("Successful attack: one device was accessed")
 	} else {
-		fmt.Printf("%s Streams were found but none were accessed. They are most likely configured with secure credentials and routes. You can try adding entries to the dictionary or generating your own in order to attempt a bruteforce attack on the cameras.\n", style.Failure("\xE2\x9C\x96"))
+		fmt.Printf("Streams were found but none were accessed. They are most likely configured with secure credentials and routes. You can try adding entries to the dictionary or generating your own in order to attempt a bruteforce attack on the cameras.\n", ("\xE2\x9C\x96"))
 	}
 }
 

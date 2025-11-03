@@ -10,12 +10,10 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/Ullaakut/disgo/style"
-
+	"github.com/!ullaakut/disgo"
+	"github.com/!ullaakut/disgo/style"
 	"github.com/PuerkitoBio/goquery"
-	"github.com/Ullaakut/disgo"
 	"github.com/vbauerster/mpb"
-	"github.com/vbauerster/mpb/decor"
 )
 
 const dictionaryURL = "https://community.geniusvision.net/platform/cprndr/manulist"
@@ -31,17 +29,17 @@ func main() {
 func updateDictionary() error {
 	disgo.SetTerminalOptions(disgo.WithColors(true), disgo.WithDebug(true))
 
-	disgo.StartStep("Fetching dictionary list")
+	fmt.Println("Fetching dictionary list")
 	resp, err := http.Get(dictionaryURL)
 	if err != nil {
-		return disgo.FailStepf("unable to download dictionaries: %v", err)
+		return fmt.Errorf("unable to download dictionaries: %v", err)
 	}
 	defer resp.Body.Close()
 
-	disgo.StartStep("Parsing dictionary list")
+	fmt.Println("Parsing dictionary list")
 	doc, err := goquery.NewDocumentFromReader(resp.Body)
 	if err != nil {
-		return disgo.FailStepf("unable to read from dictionary list: %v", err)
+		return fmt.Errorf("unable to read from dictionary list: %v", err)
 	}
 
 	var vendorURLs []string
@@ -56,10 +54,10 @@ func updateDictionary() error {
 		}
 	})
 
-	disgo.StartStep("Loading current cameradar dictionary")
+	fmt.Println("Loading current cameradar dictionary")
 	currentDictionary, err := ioutil.ReadFile("dictionaries/routes")
 	if err != nil {
-		return disgo.FailStepf("unable to read current dictionary: %v", err)
+		return fmt.Errorf("unable to read current dictionary: %v", err)
 	}
 
 	dictionaryEntries := bytes.Split(currentDictionary, []byte("\n"))
@@ -68,20 +66,9 @@ func updateDictionary() error {
 		rtspURLsFound.Store(string(rtspURL), struct{}{})
 	}
 
-	disgo.Debugf("Current dictionary has %d entries\n", len(dictionaryEntries))
-	disgo.EndStep()
+	fmt.Printf("Current dictionary has %d entries\n", len(dictionaryEntries))
 
-	p := mpb.New(mpb.WithWidth(64))
 	name := fmt.Sprintf("Fetching default routes from %d constructors:", len(vendorURLs))
-	bar := p.AddBar(int64(len(vendorURLs)),
-		// set custom bar style, default one is "[=>-]"
-		mpb.BarStyle("╢▌▌░╟"),
-		mpb.PrependDecorators(
-			// display our name with one space on the right
-			decor.Name(name, decor.WC{W: len(name), C: decor.DidentRight}),
-		),
-		mpb.AppendDecorators(decor.Percentage()),
-	)
 
 	for _, url := range vendorURLs {
 		go loadRoutes(url, bar)
@@ -102,13 +89,11 @@ func updateDictionary() error {
 		return rtspURLs[a] < rtspURLs[b]
 	})
 
-	disgo.EndStep()
-
 	if len(dictionaryEntries) < len(rtspURLs) {
-		disgo.Infof("%s Saving them in cameradar default dictionary.\n", style.Success("Found ", len(rtspURLs)-len(dictionaryEntries), " new entries!"))
+		fmt.Printf("%s Saving them in cameradar default dictionary.\n", style.Success("Found ", len(rtspURLs)-len(dictionaryEntries), " new entries!"))
 		saveRoutes(rtspURLs)
 	} else {
-		disgo.Infoln(style.Success("No new entry found, dictionary up-to-date! :)"))
+		fmt.Println("No new entry found, dictionary up-to-date! :)")
 	}
 
 	return nil
@@ -132,7 +117,7 @@ func loadRoutes(url string, bar *mpb.Bar) {
 	}
 
 	if failureCounter == 5 {
-		disgo.Errorln("Request failed 5 times in a row, giving up on this vendor")
+		fmt.Errorf("Request failed 5 times in a row, giving up on this vendor")
 		return
 	}
 
@@ -140,7 +125,7 @@ func loadRoutes(url string, bar *mpb.Bar) {
 
 	doc, err := goquery.NewDocumentFromReader(resp.Body)
 	if err != nil {
-		disgo.Errorf("unable to read from dictionary list for URL %q: %v\n", url, err)
+		fmt.Errorf("unable to read from dictionary list for URL %q: %v\n", url, err)
 		return
 	}
 
@@ -183,9 +168,9 @@ func loadRoutes(url string, bar *mpb.Bar) {
 func saveRoutes(rtspURLs []string) {
 	contents := strings.Join(rtspURLs, "\n")
 
-	disgo.StartStep("Writing new dictionary file")
+	fmt.Println("Writing new dictionary file")
 	err := ioutil.WriteFile("dictionaries/routes", []byte(contents), 0644)
 	if err != nil {
-		disgo.FailStepf("unable to write dictionary: %v", err)
+		fmt.Printf("unable to write dictionary: %v", err)
 	}
 }

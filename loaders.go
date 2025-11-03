@@ -34,7 +34,7 @@ func (osFS) Stat(name string) (os.FileInfo, error) { return os.Stat(name) }
 
 // LoadCredentials opens a dictionary file and returns its contents as a Credentials structure.
 func (s *Scanner) LoadCredentials() error {
-	fmt.Println("Loading credentials dictionary from path %q\n", s.credentialDictionaryPath)
+	fmt.Printf("Loading credentials dictionary from path %q\n", s.credentialDictionaryPath)
 
 	// Open & Read XML file.
 	content, err := os.ReadFile(s.credentialDictionaryPath)
