@@ -48,13 +48,13 @@ func (s *Scanner) LoadCredentials() error {
 		return fmt.Errorf("unable to unmarshal dictionary contents: %v", err)
 	}
 
-	fmt.Println("Loaded %d usernames and %d passwords\n", len(s.credentials.Usernames), len(s.credentials.Passwords))
+	fmt.Printf("Loaded %d usernames and %d passwords\n", len(s.credentials.Usernames), len(s.credentials.Passwords))
 	return nil
 }
 
 // LoadRoutes opens a dictionary file and returns its contents as a Routes structure.
 func (s *Scanner) LoadRoutes() error {
-	fmt.Println("Loading routes dictionary from path %q\n", s.routeDictionaryPath)
+	fmt.Printf("Loading routes dictionary from path %q\n", s.routeDictionaryPath)
 
 	file, err := os.Open(s.routeDictionaryPath)
 	if err != nil {

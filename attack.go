@@ -110,7 +110,6 @@ func (s *Scanner) AttackCredentials(targets []Stream) []Stream {
 func (s *Scanner) AttackRoute(targets []Stream) []Stream {
 	resChan := make(chan Stream)
 	defer close(resChan)
-	fmt.Println("AttackRoute")
 	for i := range targets {
 		go s.attackCameraRoute(targets[i], resChan)
 	}
@@ -364,13 +363,14 @@ func (s *Scanner) detectAuthMethod(stream Stream) headers.AuthMethod {
 }
 
 func (s *Scanner) routeAttack(stream Stream, route string) bool {
+	fmt.Println("func begin")
 	rawURL := fmt.Sprintf(("rtsp://%s:%d/%s"), stream.Address, stream.Port, stream.Route())
 	attackURL, err := base.ParseURL(rawURL)
 	if err != nil {
 		fmt.Errorf("Url parsing %q failed: %v", rawURL, err)
 		return false
 	}
-
+	fmt.Println("client creating")
 	s.client = &gortsplib.Client{
 		Scheme: attackURL.Scheme,
 		Host:   attackURL.Host,
@@ -378,10 +378,11 @@ func (s *Scanner) routeAttack(stream Stream, route string) bool {
 	//s.client.Scheme = attackURL.Scheme
 	//s.client.Host = attackURL.Host
 
-	// err = client.Start()
+	// err = s.client.Start()
+	// s.op
 	// if err != nil {
-	// 	s.term.Errorf("Perform failed for %q (auth %d): %v", attackURL, stream.AuthenticationType, err)
-	// 	return false
+	//  	fmt.Errorf("Perform failed for %q (auth %d): %v", attackURL, stream.AuthenticationType, err)
+	//  	return false
 	// }
 	_, rc, err := s.client.Describe(attackURL)
 	if err != nil {
