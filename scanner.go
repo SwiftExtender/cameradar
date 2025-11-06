@@ -6,8 +6,6 @@ import (
 	"os"
 	"sync"
 	"time"
-
-	"github.com/bluenviron/gortsplib/v5"
 )
 
 const (
@@ -18,8 +16,6 @@ const (
 // Scanner represents a cameradar scanner. It scans a network and
 // attacks all streams found to get their RTSP credentials.
 type Scanner struct {
-	client *gortsplib.Client
-
 	targets                  []string
 	ports                    []string
 	debug                    bool

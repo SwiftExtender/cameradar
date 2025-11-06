@@ -35,7 +35,7 @@ type AuthInfo struct {
 }
 
 // Route that should never be a constructor default.
-const dummyRoute = "/0x8b6c42"
+//const dummyRoute = "0x8b6c42"
 
 // Attack attacks the given targets and returns the accessed streams.
 func (s *Scanner) Attack(targets []Stream) ([]Stream, error) {
@@ -173,16 +173,16 @@ func (s *Scanner) attackCameraRoute(target Stream, resChan chan<- Stream) {
 	// If the stream responds positively to the dummy route, it means
 	// it doesn't require (or respect the RFC) a route and the attack
 	// can be skipped.
-	ok := s.routeAttack(target, dummyRoute)
-	if ok {
-		target.RouteFound = true
-		target.Routes = append(target.Routes, "/")
-		resChan <- target
-		if s.debug {
-			fmt.Printf("Positive to dummy route: %s", target.Address)
-		}
-		return
-	}
+	// ok := s.routeAttack(target, dummyRoute)
+	// if ok {
+	// 	target.RouteFound = true
+	// 	target.Routes = append(target.Routes, "/")
+	// 	resChan <- target
+	// 	if s.debug {
+	// 		fmt.Printf("Positive to dummy route: %s", target.Address)
+	// 	}
+	// 	return
+	// }
 
 	// Otherwise, bruteforce the routes.
 	for _, route := range s.routes {
@@ -341,11 +341,11 @@ func (s *Scanner) detectAuthMethod(stream Stream) headers.AuthMethod {
 		Host:   attackURL.Host,
 	}
 
-	// err = client.Start()
-	// if err != nil {
-	// 	s.term.Errorf("Perform failed for %q (auth %d): %v", attackURL, stream.AuthenticationType, err)
-	// 	return -1
-	// }
+	err = client.Start()
+	if err != nil {
+		fmt.Errorf("Perform failed for %q (auth %d): %v", attackURL, stream.AuthenticationType, err)
+		return -1
+	}
 
 	_, rc, err := client.Describe(attackURL)
 	if err != nil {
@@ -363,28 +363,25 @@ func (s *Scanner) detectAuthMethod(stream Stream) headers.AuthMethod {
 }
 
 func (s *Scanner) routeAttack(stream Stream, route string) bool {
-	fmt.Println("func begin")
-	rawURL := fmt.Sprintf(("rtsp://%s:%d/%s"), stream.Address, stream.Port, stream.Route())
+	rawURL := fmt.Sprintf(("rtsp://%s:%d/%s"), stream.Address, stream.Port, route)
 	attackURL, err := base.ParseURL(rawURL)
 	if err != nil {
 		fmt.Errorf("Url parsing %q failed: %v", rawURL, err)
 		return false
 	}
-	fmt.Println("client creating")
-	s.client = &gortsplib.Client{
+
+	client := &gortsplib.Client{
 		Scheme: attackURL.Scheme,
 		Host:   attackURL.Host,
 	}
-	//s.client.Scheme = attackURL.Scheme
-	//s.client.Host = attackURL.Host
-
-	// err = s.client.Start()
-	// s.op
-	// if err != nil {
-	//  	fmt.Errorf("Perform failed for %q (auth %d): %v", attackURL, stream.AuthenticationType, err)
-	//  	return false
-	// }
-	_, rc, err := s.client.Describe(attackURL)
+	client.OptionsSent = true
+	err = client.Start()
+	defer client.Close()
+	if err != nil {
+		fmt.Errorf("Perform failed for %q (auth %d): %v", attackURL, stream.AuthenticationType, err)
+		return false
+	}
+	_, rc, err := client.Describe(attackURL)
 	if err != nil {
 		if rc != nil && (rc.StatusCode == base.StatusOK || rc.StatusCode == base.StatusUnauthorized || rc.StatusCode == base.StatusForbidden) {
 			if s.debug {
@@ -408,16 +405,20 @@ func (s *Scanner) credAttack(stream Stream, username string, password string) (b
 		return false, description.Session{}
 	}
 
-	s.client.Scheme = attackURL.Scheme
-	s.client.Host = attackURL.Host
+	client := &gortsplib.Client{
+		Scheme: attackURL.Scheme,
+		Host:   attackURL.Host,
+	}
+	client.OptionsSent = true
 
-	// err = client.Start()
-	// if err != nil {
-	// 	s.term.Errorf("Perform failed for %q (auth %d): %v", attackURL, stream.AuthenticationType, err)
-	// 	return false, description.Session{}
-	// }
+	err = client.Start()
+	defer client.Close()
+	if err != nil {
+		fmt.Errorf("Perform failed for %q (auth %d): %v", attackURL, stream.AuthenticationType, err)
+		return false, description.Session{}
+	}
 
-	desc, rc, err := s.client.Describe(attackURL)
+	desc, rc, err := client.Describe(attackURL)
 	if err != nil {
 		fmt.Errorf("credAttack Getinfo failed for %s: %v", err, attackURL)
 		return false, description.Session{}
@@ -463,19 +464,20 @@ func (s *Scanner) validateStream(stream Stream) bool {
 		return false
 	}
 
-	s.client.Scheme = attackURL.Scheme
-	s.client.Host = attackURL.Host
-
+	client := &gortsplib.Client{
+		Scheme: attackURL.Scheme,
+		Host:   attackURL.Host,
+	}
 	// connect to the server
-	err = s.client.Start()
+	err = client.Start()
 	if err != nil {
 		fmt.Println(err)
 		return false
 	}
-	defer s.client.Close()
+	defer client.Close()
 
 	// find available medias
-	desc, _, err := s.client.Describe(attackURL)
+	desc, _, err := client.Describe(attackURL)
 	if err != nil {
 		fmt.Println(err)
 		return false
@@ -510,16 +512,16 @@ func (s *Scanner) validateStream(stream Stream) bool {
 	defer mpegtsMuxer.close()
 
 	// setup a single media
-	_, err = s.client.Setup(desc.BaseURL, medi, 0, 0)
+	_, err = client.Setup(desc.BaseURL, medi, 0, 0)
 	if err != nil {
 		fmt.Println(err)
 		return false
 	}
 
 	// called when a RTP packet arrives
-	s.client.OnPacketRTP(medi, forma, func(pkt *rtp.Packet) {
+	client.OnPacketRTP(medi, forma, func(pkt *rtp.Packet) {
 		// decode timestamp
-		pts, ok := s.client.PacketPTS(medi, pkt)
+		pts, ok := client.PacketPTS(medi, pkt)
 		if !ok {
 			log.Print("waiting for timestamp")
 			return
@@ -545,12 +547,12 @@ func (s *Scanner) validateStream(stream Stream) bool {
 	})
 
 	// start playing
-	_, err = s.client.Play(nil)
+	_, err = client.Play(nil)
 	if err != nil {
 		fmt.Println(err)
 		return false
 	}
-	s.client.Wait()
+	client.Wait()
 	// wait until a fatal error
 	//panic(c.Wait())
 	return true
