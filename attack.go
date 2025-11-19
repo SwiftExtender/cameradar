@@ -47,10 +47,10 @@ func (s *Scanner) Attack(targets []Stream) ([]Stream, error) {
 	fmt.Printf("Attacking routes of %d streams", len(targets))
 	streams := s.AttackRoute(targets)
 
-	fmt.Println("Attempting to detect authentication methods of %d streams", len(targets))
+	fmt.Printf("Attempting to detect authentication methods of %d streams", len(targets))
 	streams = s.DetectAuthMethods(streams)
 
-	fmt.Println("Attacking credentials of %d streams", len(targets))
+	fmt.Printf("Attacking credentials of %d streams", len(targets))
 	streams = s.AttackCredentials(streams)
 
 	fmt.Println("Validating that streams are accessible")
@@ -65,7 +65,7 @@ func (s *Scanner) Attack(targets []Stream) ([]Stream, error) {
 			fmt.Println("Second round of attacks")
 			streams = s.AttackRoute(streams)
 
-			fmt.Printf("Validating that streams are accessible")
+			fmt.Println("Validating that streams are accessible")
 			streams = s.ValidateStreams(streams)
 
 			break
