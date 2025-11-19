@@ -47,13 +47,13 @@ func (s *Scanner) Attack(targets []Stream) ([]Stream, error) {
 	fmt.Printf("Attacking routes of %d streams", len(targets))
 	streams := s.AttackRoute(targets)
 
-	fmt.Printf("Attempting to detect authentication methods of %d streams", len(targets))
+	fmt.Println("Attempting to detect authentication methods of %d streams", len(targets))
 	streams = s.DetectAuthMethods(streams)
 
-	fmt.Printf("Attacking credentials of %d streams", len(targets))
+	fmt.Println("Attacking credentials of %d streams", len(targets))
 	streams = s.AttackCredentials(streams)
 
-	fmt.Printf("Validating that streams are accessible")
+	fmt.Println("Validating that streams are accessible")
 	streams = s.ValidateStreams(streams)
 
 	fmt.Println("Streams after first round of attack")
@@ -120,7 +120,6 @@ func (s *Scanner) AttackRoute(targets []Stream) []Stream {
 			targets = replace(targets, attackResult)
 		}
 	}
-
 	return targets
 }
 
@@ -190,13 +189,15 @@ func (s *Scanner) attackCameraRoute(target Stream, resChan chan<- Stream) {
 		if ok {
 			target.RouteFound = true
 			target.Routes = append(target.Routes, route)
-			if s.debug {
-				fmt.Printf("Negative to dummy route: %s", target.Address)
-			}
+			// if s.debug {
+			// 	fmt.Printf("Negative to dummy route: %s", target.Address)
+			// }
 		}
 		time.Sleep(s.attackInterval)
 	}
-
+	if len(target.Routes) > 10 {
+		target.Routes = []string{""}
+	}
 	resChan <- target
 }
 
@@ -398,7 +399,7 @@ func (s *Scanner) routeAttack(stream Stream, route string) bool {
 }
 
 func (s *Scanner) credAttack(stream Stream, username string, password string) (bool, description.Session) {
-	rawURL := fmt.Sprintf(("rtsp://%s:%d/%s"), stream.Address, stream.Port, stream.Route())
+	rawURL := fmt.Sprintf(("rtsp://%s:%s@%s:%d/%s"), username, password, stream.Address, stream.Port, stream.Route())
 	attackURL, err := base.ParseURL(rawURL)
 	if err != nil {
 		fmt.Errorf("Url parsing %q failed: %v", rawURL, err)

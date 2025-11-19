@@ -144,13 +144,11 @@ func New(options ...func(*Scanner)) (*Scanner, error) {
 		return nil, fmt.Errorf("unable to parse target file: %v", err)
 	}
 
-	fmt.Println("Loading credentials")
 	err = scanner.LoadCredentials()
 	if err != nil {
 		return nil, fmt.Errorf("unable to load credentials dictionary: %v", err)
 	}
 
-	fmt.Println("Loading routes")
 	err = scanner.LoadRoutes()
 	if err != nil {
 		return nil, fmt.Errorf("unable to load credentials dictionary: %v", err)

@@ -20,7 +20,7 @@ func (s *Scanner) PrintStreams(streams []Stream) {
 			fmt.Println("\tAvailable:)")
 			success++
 		} else {
-			fmt.Printf("\tAdmin panel URL:\t%s You can use this URL to try attacking the camera's admin panel instead.\n", GetCameraAdminPanelURL(stream))
+			fmt.Printf("\tAdmin panel URL:\t%s\n", GetCameraAdminPanelURL(stream))
 			fmt.Println("\tAvailable:)")
 		}
 
