@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/bluenviron/gortsplib/v5/pkg/description"
-	"github.com/bluenviron/gortsplib/v5/pkg/headers"
 )
 
 // Stream represents a camera's RTSP stream
@@ -21,7 +20,7 @@ type Stream struct {
 	Available        bool     `json:"available"`
 
 	Media              description.Session `json:"media"`
-	AuthenticationType headers.AuthMethod  `json:"authentication_type"`
+	AuthenticationType string              `json:"authentication_type"`
 }
 
 // Route returns this stream's route if there is one.
